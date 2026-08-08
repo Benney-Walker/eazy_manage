@@ -1,8 +1,10 @@
 abstract final class ApiConfig {
 
-  static const String LOCAL_URL = 'http://localhost:8080/api';
+  static const String PRODUCTION_URL = 'https://schoolmanagementsystem-eazymanage.up.railway.app';
 
-  static const String PRODUCTION_URL = 'https://schoolmanagementsystem-eazymanage.up.railway.app/api';
+  static const String LOCAL_URL = 'http://localhost:8080';
+
+  static const String BASE_URL = PRODUCTION_URL + '/api';
 
   // URL roots
   static const String finance = '/finance';
@@ -42,4 +44,16 @@ abstract final class Endpoints {
       '${ApiConfig.finance}${ApiConfig.v1}/recent-fees-transactions';
   static const String recentLogs =
       '${ApiConfig.admin}${ApiConfig.v1}/recent-logs';
+
+  // ---- Students ----
+  static const String loadClasses = '${ApiConfig.staff}${ApiConfig.v1}/load-classes';
+  static String loadStudents(String levelId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/load-students/$levelId';
+  static String findStudent(String studentId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/find-student/$studentId';
+  static const String addStudent =
+      '${ApiConfig.student}${ApiConfig.v1}/add-new-student';
+  static const String updateStudent =
+      '${ApiConfig.student}${ApiConfig.v1}/update-student-data';
 }
+

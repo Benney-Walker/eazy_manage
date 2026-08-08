@@ -6,6 +6,7 @@ import '../session/session.dart';
 import '../theme/app_colors.dart';
 import '../../features/auth/ui/login_screen.dart';
 import '../../features/dashboard/ui/dashboard_screen.dart';
+import '../../features/students/ui/students_screen.dart';
 import '../../shell/app_shell.dart';
 import '../../shell/widgets/coming_soon_screen.dart';
 import 'nav_item.dart';
@@ -78,13 +79,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// Maps a nav item to its screen. Real screens replace these builders as each
 /// domain is ported; for now only the dashboard is live.
 Widget _destinationFor(NavItem item) {
-  if (item.id == 'dashboard') return const DashboardScreen();
-
-  final note = switch (item.id) {
-    'students' => 'Phase 4',
-    _ => 'Later phase',
+  return switch (item.id) {
+    'dashboard' => const DashboardScreen(),
+    'students' => const StudentsScreen(),
+    _ => ComingSoonScreen(
+        title: item.label, icon: item.icon, phaseNote: 'Later phase'),
   };
-  return ComingSoonScreen(title: item.label, icon: item.icon, phaseNote: note);
 }
 
 /// Bridges Riverpod auth-state changes into a [Listenable] go_router can watch,
@@ -93,7 +93,7 @@ class _AuthRefresh extends ChangeNotifier {
   _AuthRefresh(Ref ref) {
     _sub = ref.listen<AuthState>(
       authProvider,
-      (_, __) => notifyListeners(),
+          (_, __) => notifyListeners(),
       fireImmediately: false,
     );
   }

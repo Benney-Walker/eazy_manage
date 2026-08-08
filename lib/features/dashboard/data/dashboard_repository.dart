@@ -3,12 +3,6 @@ import '../../../core/api/api_config.dart';
 import '../../../core/navigation/nav_item.dart';
 import 'dashboard_models.dart';
 
-/// Fetches the dashboard payload for a given role. Mirrors the JavaFX
-/// `DashboardService` split: principal/admin see the counts + logs, accountant
-/// sees fees, teaching staff see a lighter set.
-///
-/// The count endpoints return a bare number as the body; [_count] parses that
-/// tolerantly (handles quotes/whitespace just in case).
 class DashboardRepository {
   final ApiClient _api;
 
@@ -91,7 +85,7 @@ class DashboardRepository {
   /// GET a count endpoint whose body is a bare number.
   Future<int?> _count(String path) async {
     try {
-      final res = await _api.get(path);
+      final res = await _api.get(path, triggerLogoutOn401: false);
       final body = res.data;
       if (body is int) return body;
       if (body is num) return body.toInt();
@@ -106,7 +100,7 @@ class DashboardRepository {
 
   Future<List<AbsentStudent>> _absentStudents() async {
     try {
-      final res = await _api.get(Endpoints.absentStudents);
+      final res = await _api.get(Endpoints.absentStudents, triggerLogoutOn401: false);
       final list = res.data;
       if (list is List) {
         return list
@@ -122,7 +116,7 @@ class DashboardRepository {
 
   Future<List<FeesTransaction>> _recentTransactions() async {
     try {
-      final res = await _api.get(Endpoints.recentFeesTransactions);
+      final res = await _api.get(Endpoints.recentFeesTransactions, triggerLogoutOn401: false);
       final list = res.data;
       if (list is List) {
         return list
@@ -138,7 +132,7 @@ class DashboardRepository {
 
   Future<List<RecentLog>> _recentLogs() async {
     try {
-      final res = await _api.get(Endpoints.recentLogs);
+      final res = await _api.get(Endpoints.recentLogs, triggerLogoutOn401: false);
       final list = res.data;
       if (list is List) {
         return list

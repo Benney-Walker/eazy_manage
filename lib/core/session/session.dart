@@ -38,12 +38,12 @@ class Session {
   bool get hasMultipleRoles => roles.length > 1;
 
   Session copyWith({AppRole? role}) => Session(
-        staffId: staffId,
-        fullName: fullName,
-        organizationName: organizationName,
-        roles: roles,
-        role: role ?? this.role,
-      );
+    staffId: staffId,
+    fullName: fullName,
+    organizationName: organizationName,
+    roles: roles,
+    role: role ?? this.role,
+  );
 }
 
 /// The three states the app can be in with respect to authentication.
@@ -92,6 +92,7 @@ class AuthController extends Notifier<AuthState> {
       state = const AuthState.unauthenticated();
       return;
     }
+    _api.setCredentials(token: stored.token, staffId: stored.staffId);
     state = AuthState.authenticated(_sessionFromStored(stored));
   }
 
@@ -103,6 +104,11 @@ class AuthController extends Notifier<AuthState> {
   }) async {
     try {
       final res = await _repo.login(staffId: staffId, password: password);
+
+      // Prime the client with the fresh token immediately so the first
+      // authenticated call (the dashboard) carries the header without racing
+      // secure storage.
+      _api.setCredentials(token: res.authToken, staffId: res.staffId);
 
       final roles = res.roles.map(AppRole.fromBackend).toList();
       // Re-read the persisted active role to mirror repo's selection.
@@ -133,6 +139,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    _api.clearCredentials();
     await _repo.signOut();
     state = const AuthState.unauthenticated();
   }
@@ -140,13 +147,14 @@ class AuthController extends Notifier<AuthState> {
   void _onUnauthorized() {
     // Fire-and-forget: clear storage and flip to unauthenticated. The router
     // redirect reacts and sends the user to the login screen.
+    _api.clearCredentials();
     _repo.signOut();
     state = const AuthState.unauthenticated();
   }
 
   Session _sessionFromStored(dynamic stored) {
     final roles =
-        (stored.roles as List<String>).map(AppRole.fromBackend).toList();
+    (stored.roles as List<String>).map(AppRole.fromBackend).toList();
     final active = AppRole.fromBackend(stored.activeRole as String);
     return Session(
       staffId: stored.staffId as String,
@@ -159,7 +167,7 @@ class AuthController extends Notifier<AuthState> {
 }
 
 final authProvider =
-    NotifierProvider<AuthController, AuthState>(AuthController.new);
+NotifierProvider<AuthController, AuthState>(AuthController.new);
 
 /// Convenience: the current [Session] (or null if not authenticated).
 final sessionProvider = Provider<Session?>((ref) {

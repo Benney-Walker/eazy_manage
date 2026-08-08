@@ -18,18 +18,42 @@ class ApiException implements Exception {
   String toString() => 'ApiException($kind, $statusCode): $message';
 }
 
+/// Called when any request comes back 401 — lets the app clear the session and
+/// bounce to login without every call site handling it.
 typedef OnUnauthorized = void Function();
 
+/// Wraps Dio with the app's conventions:
+///   * base URL from [ApiConfig]
+///   * every request carries `Authorization: Bearer <token>` + `staffId`
+///     (read from secure storage), matching the JavaFX header contract
+///   * backend `{message}` bodies become the [ApiException.message]
+///   * 401 triggers the [onUnauthorized] hook (session-expiry handling)
 class ApiClient {
   final Dio _dio;
   final TokenStorage _storage;
   OnUnauthorized? onUnauthorized;
 
+  /// In-memory copy of the current token + staffId. Set the moment login
+  /// succeeds (and on restore) so the request interceptor never has to wait
+  /// on—or race—the secure-storage read. Falls back to storage if unset.
+  String? _tokenInMemory;
+  String? _staffIdInMemory;
+
+  void setCredentials({required String token, required String staffId}) {
+    _tokenInMemory = token;
+    _staffIdInMemory = staffId;
+  }
+
+  void clearCredentials() {
+    _tokenInMemory = null;
+    _staffIdInMemory = null;
+  }
+
   ApiClient({required TokenStorage storage, Dio? dio})
       : _storage = storage,
         _dio = dio ??
             Dio(BaseOptions(
-              baseUrl: ApiConfig.LOCAL_URL,
+              baseUrl: ApiConfig.BASE_URL,
               connectTimeout: const Duration(seconds: 15),
               receiveTimeout: const Duration(seconds: 20),
               // We validate status ourselves so we can map errors cleanly.
@@ -41,8 +65,8 @@ class ApiClient {
           // Login is the one call that must NOT carry a stale token/staffId.
           final isAuthCall = options.path.contains('${ApiConfig.auth}/');
           if (!isAuthCall) {
-            final token = await _storage.token;
-            final staffId = await _storage.staffId;
+            final token = _tokenInMemory ?? await _storage.token;
+            final staffId = _staffIdInMemory ?? await _storage.staffId;
             if (token != null && token.isNotEmpty) {
               options.headers['Authorization'] = 'Bearer $token';
             }
@@ -60,25 +84,36 @@ class ApiClient {
 
   // ---- Verb helpers that return the decoded body or throw ApiException -----
 
-  Future<Response<dynamic>> get(String path, {Map<String, dynamic>? query}) {
-    return _send(() => _dio.get(path, queryParameters: query));
+  Future<Response<dynamic>> get(String path,
+      {Map<String, dynamic>? query, bool triggerLogoutOn401 = true}) {
+    return _send(() => _dio.get(path, queryParameters: query),
+        triggerLogoutOn401: triggerLogoutOn401);
   }
 
-  Future<Response<dynamic>> post(String path, {Object? body}) {
-    return _send(() => _dio.post(path, data: body));
+  Future<Response<dynamic>> post(String path,
+      {Object? body, bool triggerLogoutOn401 = true}) {
+    return _send(() => _dio.post(path, data: body),
+        triggerLogoutOn401: triggerLogoutOn401);
   }
 
-  Future<Response<dynamic>> put(String path, {Object? body}) {
-    return _send(() => _dio.put(path, data: body));
+  Future<Response<dynamic>> put(String path,
+      {Object? body, bool triggerLogoutOn401 = true}) {
+    return _send(() => _dio.put(path, data: body),
+        triggerLogoutOn401: triggerLogoutOn401);
   }
 
-  Future<Response<dynamic>> delete(String path, {Object? body}) {
-    return _send(() => _dio.delete(path, data: body));
+  Future<Response<dynamic>> delete(String path,
+      {Object? body, bool triggerLogoutOn401 = true}) {
+    return _send(() => _dio.delete(path, data: body),
+        triggerLogoutOn401: triggerLogoutOn401);
   }
 
   // -------------------------------------------------------------------------
 
-  Future<Response<dynamic>> _send(Future<Response<dynamic>> Function() run) async {
+  Future<Response<dynamic>> _send(
+      Future<Response<dynamic>> Function() run, {
+        bool triggerLogoutOn401 = true,
+      }) async {
     late final Response<dynamic> res;
     try {
       res = await run();
@@ -106,7 +141,7 @@ class ApiClient {
     final message = _extractMessage(res.data) ?? _defaultMessageFor(code);
 
     if (code == 401) {
-      onUnauthorized?.call();
+      if (triggerLogoutOn401) onUnauthorized?.call();
       throw ApiException(message, ApiFailureKind.unauthorized, statusCode: code);
     }
     if (code == 403) {
