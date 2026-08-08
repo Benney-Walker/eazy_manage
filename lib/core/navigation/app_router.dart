@@ -1,3 +1,4 @@
+import 'package:eazy_manage/features/staff/ui/staff_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,9 +43,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/${NavRegistry.home}';
       }
 
-      // Showcase is always reachable for signed-in users.
-      if (id == 'showcase') return null;
-
       // Role guard for shell destinations.
       final item = NavRegistry.findById(id);
       if (item == null) return '/${NavRegistry.home}';
@@ -76,19 +74,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Maps a nav item to its screen. Real screens replace these builders as each
-/// domain is ported; for now only the dashboard is live.
 Widget _destinationFor(NavItem item) {
   return switch (item.id) {
     'dashboard' => const DashboardScreen(),
     'students' => const StudentsScreen(),
+    'staff' => const StaffScreen(),
     _ => ComingSoonScreen(
         title: item.label, icon: item.icon, phaseNote: 'Later phase'),
   };
 }
 
-/// Bridges Riverpod auth-state changes into a [Listenable] go_router can watch,
-/// so the redirect re-runs the moment the user logs in or out.
 class _AuthRefresh extends ChangeNotifier {
   _AuthRefresh(Ref ref) {
     _sub = ref.listen<AuthState>(

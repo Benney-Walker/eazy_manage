@@ -55,5 +55,18 @@ abstract final class Endpoints {
       '${ApiConfig.student}${ApiConfig.v1}/add-new-student';
   static const String updateStudent =
       '${ApiConfig.student}${ApiConfig.v1}/update-student-data';
+
+  // ---- Staff ----
+  static const String loadStaffs =
+      '${ApiConfig.staff}${ApiConfig.v1}/load-staffs-info';
+  static String findStaff(String staffId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/find-staff-by-id/$staffId';
+  static const String updateStaff =
+      '${ApiConfig.admin}${ApiConfig.v1}/update-staff-info';
+  static const String enrollStaff =
+      '${ApiConfig.auth}${ApiConfig.v1}/enroll-new-staff';
+  static String resetStaffPassword(String newPasswordStaffId, String newPassword) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/reset-staff-password'
+          '?newPasswordStaffId=$newPasswordStaffId&newPassword=$newPassword';
 }
 
