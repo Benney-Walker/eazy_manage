@@ -9,6 +9,10 @@ import '../core/theme/app_colors.dart';
 import 'widgets/app_sidebar.dart';
 import 'widgets/app_top_bar.dart';
 
+/// The persistent workspace shell: sidebar on the left, top bar across the
+/// top, and the active route's content filling the rest. Wrapped around all
+/// destination routes via a [ShellRoute] so it stays mounted while the body
+/// swaps — no flicker, preserved sidebar scroll position, instant nav.
 class AppShell extends ConsumerStatefulWidget {
   /// The routed child (the current destination's screen).
   final Widget child;
@@ -45,8 +49,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _onSignOut() {
-    ref.read(sessionProvider.notifier).signOut();
-    // Phase 3: context.go('/auth');
+    ref.read(authProvider.notifier).signOut();
+    // The router redirect reacts to the auth state change and routes to /auth.
   }
 
   @override

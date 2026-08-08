@@ -33,6 +33,10 @@ class AppSidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
     final session = ref.watch(sessionProvider);
+    if (session == null) {
+      // Shell shouldn't render without a session, but stay defensive.
+      return const SizedBox.shrink();
+    }
     final sections = NavRegistry.sectionsFor(session.role);
 
     return AnimatedContainer(

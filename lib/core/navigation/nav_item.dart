@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A single navigation destination in the sidebar. Mirrors the JavaFX
-/// `NavItem` record: an id (also the route path), a label, an icon, and the
-/// set of roles allowed to see it.
 @immutable
 class NavItem {
   /// Stable id — also used as the go_router path (e.g. 'dashboard').
@@ -46,6 +43,15 @@ enum AppRole {
 
   final String label;
   const AppRole(this.label);
+
+  /// The backend enum string form (e.g. AppRole.teachingStaff -> "TEACHING_STAFF").
+  String get backendValue => switch (this) {
+        AppRole.principal => 'PRINCIPAL',
+        AppRole.administrator => 'ADMINISTRATOR',
+        AppRole.accountant => 'ACCOUNTANT',
+        AppRole.teachingStaff => 'TEACHING_STAFF',
+        AppRole.generalStaff => 'GENERAL_STAFF',
+      };
 
   /// Parse a backend role string (e.g. "TEACHING_STAFF") into an [AppRole].
   static AppRole fromBackend(String? raw) {

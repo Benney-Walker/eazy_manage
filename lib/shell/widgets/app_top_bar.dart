@@ -61,7 +61,7 @@ class AppTopBar extends ConsumerWidget {
             onTap: () => ref.read(themeModeProvider.notifier).toggle(),
           ),
           const SizedBox(width: AppSpacing.sm),
-          const _RolePicker(),
+          const _RoleSwitcher(),
         ],
       ),
     );
@@ -204,21 +204,52 @@ class _OfflineIndicatorState extends State<_OfflineIndicator> {
   }
 }
 
-/// Development-only role switcher, so nav visibility can be previewed under
-/// each role before real auth exists. Remove once login lands in Phase 3.
-class _RolePicker extends ConsumerWidget {
-  const _RolePicker();
+/// Real role switcher — shown only when the signed-in user holds more than
+/// one role. Switching updates the active role (persisted) and re-filters nav.
+/// For single-role users this collapses to a static role label.
+class _RoleSwitcher extends ConsumerWidget {
+  const _RoleSwitcher();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
-    final role = ref.watch(sessionProvider).role;
+    final session = ref.watch(sessionProvider);
+    if (session == null) return const SizedBox.shrink();
+
+    // Single role → non-interactive label.
+    if (!session.hasMultipleRoles) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: c.bgAlt,
+          borderRadius: const BorderRadius.all(AppRadius.mdR),
+          border: Border.all(color: c.border, width: AppStroke.hairline),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.verified_user_rounded, size: 15, color: c.textSecondary),
+            const SizedBox(width: AppSpacing.xs + 2),
+            Text(
+              session.role.label,
+              style: AppTypography.caption.copyWith(
+                color: c.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Tooltip(
-      message: 'Preview role (dev)',
+      message: 'Switch active role',
       child: PopupMenuButton<AppRole>(
-        initialValue: role,
-        onSelected: (r) => ref.read(sessionProvider.notifier).previewRole(r),
+        initialValue: session.role,
+        onSelected: (r) => ref.read(authProvider.notifier).switchRole(r),
         position: PopupMenuPosition.under,
         color: c.surfaceElevated,
         shape: RoundedRectangleBorder(
@@ -226,12 +257,19 @@ class _RolePicker extends ConsumerWidget {
           side: BorderSide(color: c.border, width: AppStroke.hairline),
         ),
         itemBuilder: (context) => [
-          for (final r in AppRole.values)
+          for (final r in session.roles)
             PopupMenuItem(
               value: r,
-              child: Text(
-                r.label,
-                style: AppTypography.body.copyWith(color: c.textPrimary),
+              child: Row(
+                children: [
+                  if (r == session.role)
+                    Icon(Icons.check_rounded, size: 16, color: c.brand)
+                  else
+                    const SizedBox(width: 16),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(r.label,
+                      style: AppTypography.body.copyWith(color: c.textPrimary)),
+                ],
               ),
             ),
         ],
@@ -251,7 +289,7 @@ class _RolePicker extends ConsumerWidget {
               Icon(Icons.switch_account_rounded, size: 15, color: c.textSecondary),
               const SizedBox(width: AppSpacing.xs + 2),
               Text(
-                role.label,
+                session.role.label,
                 style: AppTypography.caption.copyWith(
                   color: c.textSecondary,
                   fontWeight: FontWeight.w600,

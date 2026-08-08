@@ -1,25 +1,29 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../api/api_client.dart';
+import '../api/api_providers.dart';
 import '../navigation/nav_item.dart';
+import '../../features/auth/data/auth_repository.dart';
 
 /// The signed-in user's identity, as the shell needs it.
-///
-/// In Phase 3 this gets populated from the real login response + JWT claims.
-/// For Phase 2 it's seeded with a demo user so the shell renders and nav
-/// role-filtering can be exercised. Swapping in real auth is a matter of
-/// replacing [SessionController.build] and adding sign-in / sign-out.
 @immutable
 class Session {
   final String staffId;
   final String fullName;
   final String organizationName;
+
+  /// All roles the user holds (a user can have several).
+  final List<AppRole> roles;
+
+  /// The currently active role — drives nav filtering and role-scoped UI.
   final AppRole role;
 
   const Session({
     required this.staffId,
     required this.fullName,
     required this.organizationName,
+    required this.roles,
     required this.role,
   });
 
@@ -31,42 +35,133 @@ class Session {
     return (parts.first.characters.first + parts.last.characters.first).toUpperCase();
   }
 
-  Session copyWith({
-    String? staffId,
-    String? fullName,
-    String? organizationName,
-    AppRole? role,
-  }) {
-    return Session(
-      staffId: staffId ?? this.staffId,
-      fullName: fullName ?? this.fullName,
-      organizationName: organizationName ?? this.organizationName,
-      role: role ?? this.role,
-    );
-  }
+  bool get hasMultipleRoles => roles.length > 1;
+
+  Session copyWith({AppRole? role}) => Session(
+        staffId: staffId,
+        fullName: fullName,
+        organizationName: organizationName,
+        roles: roles,
+        role: role ?? this.role,
+      );
 }
 
-class SessionController extends Notifier<Session> {
+/// The three states the app can be in with respect to authentication.
+enum AuthStatus { unknown, authenticated, unauthenticated }
+
+/// Immutable auth state: a status plus (when authenticated) the [Session].
+@immutable
+class AuthState {
+  final AuthStatus status;
+  final Session? session;
+
+  const AuthState._(this.status, this.session);
+
+  const AuthState.unknown() : this._(AuthStatus.unknown, null);
+  const AuthState.unauthenticated() : this._(AuthStatus.unauthenticated, null);
+  const AuthState.authenticated(Session session)
+      : this._(AuthStatus.authenticated, session);
+
+  bool get isAuthenticated => status == AuthStatus.authenticated;
+}
+
+/// Owns authentication: restores a stored session on launch, performs login,
+/// switches the active role, and signs out. Wires the API client's 401 hook
+/// so an expired token anywhere drops the user back to login.
+class AuthController extends Notifier<AuthState> {
+  late final AuthRepository _repo;
+  late final ApiClient _api;
+
   @override
-  Session build() {
-    // TEMP demo session for Phase 2. Replaced by the real login flow in Phase 3.
-    return const Session(
-      staffId: 'STF100200',
-      fullName: 'Gertrude Ayensu',
-      organizationName: 'Daffodils International School',
-      role: AppRole.administrator,
-    );
+  AuthState build() {
+    _api = ref.read(apiClientProvider);
+    final storage = ref.read(tokenStorageProvider);
+    _repo = AuthRepository(_api, storage);
+
+    // Any 401 → treat as an expired session.
+    _api.onUnauthorized = _onUnauthorized;
+
+    // Kick off restore; state starts unknown and resolves asynchronously.
+    _restore();
+    return const AuthState.unknown();
   }
 
-  /// Dev helper for the shell — lets us preview nav under each role until
-  /// real auth arrives. Harmless to keep; the role picker is only wired in
-  /// the top bar during these early phases.
-  void previewRole(AppRole role) => state = state.copyWith(role: role);
+  Future<void> _restore() async {
+    final stored = await _repo.restore();
+    if (stored == null) {
+      state = const AuthState.unauthenticated();
+      return;
+    }
+    state = AuthState.authenticated(_sessionFromStored(stored));
+  }
 
-  void signOut() {
-    // Phase 3: clear token + secure storage, then route to auth.
+  /// Attempt login. Returns null on success, or a user-facing error message
+  /// on failure (so the login screen can show it inline).
+  Future<String?> login({
+    required String staffId,
+    required String password,
+  }) async {
+    try {
+      final res = await _repo.login(staffId: staffId, password: password);
+
+      final roles = res.roles.map(AppRole.fromBackend).toList();
+      // Re-read the persisted active role to mirror repo's selection.
+      final storedActive = await ref.read(tokenStorageProvider).activeRole;
+      final active = AppRole.fromBackend(storedActive ?? res.roles.first);
+
+      state = AuthState.authenticated(Session(
+        staffId: res.staffId,
+        fullName: res.staffName,
+        organizationName: res.institutionName,
+        roles: roles,
+        role: roles.contains(active) ? active : roles.first,
+      ));
+      return null;
+    } on ApiException catch (e) {
+      return e.message;
+    } catch (_) {
+      return 'Something went wrong. Please try again.';
+    }
+  }
+
+  /// Switch the active role (for users who hold more than one).
+  Future<void> switchRole(AppRole role) async {
+    final current = state.session;
+    if (current == null || !current.roles.contains(role)) return;
+    await _repo.setActiveRole(role.backendValue);
+    state = AuthState.authenticated(current.copyWith(role: role));
+  }
+
+  Future<void> signOut() async {
+    await _repo.signOut();
+    state = const AuthState.unauthenticated();
+  }
+
+  void _onUnauthorized() {
+    // Fire-and-forget: clear storage and flip to unauthenticated. The router
+    // redirect reacts and sends the user to the login screen.
+    _repo.signOut();
+    state = const AuthState.unauthenticated();
+  }
+
+  Session _sessionFromStored(dynamic stored) {
+    final roles =
+        (stored.roles as List<String>).map(AppRole.fromBackend).toList();
+    final active = AppRole.fromBackend(stored.activeRole as String);
+    return Session(
+      staffId: stored.staffId as String,
+      fullName: stored.staffName as String,
+      organizationName: stored.institutionName as String,
+      roles: roles.isEmpty ? [active] : roles,
+      role: roles.contains(active) ? active : (roles.isEmpty ? active : roles.first),
+    );
   }
 }
 
-final sessionProvider =
-    NotifierProvider<SessionController, Session>(SessionController.new);
+final authProvider =
+    NotifierProvider<AuthController, AuthState>(AuthController.new);
+
+/// Convenience: the current [Session] (or null if not authenticated).
+final sessionProvider = Provider<Session?>((ref) {
+  return ref.watch(authProvider).session;
+});

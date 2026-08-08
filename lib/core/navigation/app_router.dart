@@ -3,44 +3,59 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../session/session.dart';
+import '../theme/app_colors.dart';
+import '../../features/auth/ui/login_screen.dart';
+import '../../features/dashboard/ui/dashboard_screen.dart';
 import '../../shell/app_shell.dart';
 import '../../shell/widgets/coming_soon_screen.dart';
 import 'nav_item.dart';
 import 'nav_registry.dart';
 
-/// Builds the application router.
-///
-/// Every nav destination lives under a single [ShellRoute] so the shell
-/// (sidebar + top bar) stays mounted across navigations. Each route currently
-/// renders a [ComingSoonScreen]; as domains are ported, swap the builder for
-/// the real screen — no routing changes needed.
-///
-/// A redirect enforces role access: if the signed-in role can't see the
-/// requested destination, it's bounced to the dashboard.
 final routerProvider = Provider<GoRouter>((ref) {
+  final refresh = _AuthRefresh(ref);
+  ref.onDispose(refresh.dispose);
+
   return GoRouter(
     initialLocation: '/${NavRegistry.home}',
+    refreshListenable: refresh,
     redirect: (context, state) {
-      final role = ref.read(sessionProvider).role;
+      final auth = ref.read(authProvider);
       final path = state.uri.path;
       final id = path.startsWith('/') ? path.substring(1).split('/').first : path;
 
-      // The showcase is always reachable (dev surface).
+      // While restoring a stored session, hold on the splash.
+      if (auth.status == AuthStatus.unknown) {
+        return path == '/splash' ? null : '/splash';
+      }
+
+      final loggingIn = path == '/auth';
+      final onSplash = path == '/splash';
+
+      // Not signed in → only /auth is allowed.
+      if (!auth.isAuthenticated) {
+        return loggingIn ? null : '/auth';
+      }
+
+      // Signed in but sitting on /auth or /splash → go to the dashboard.
+      if (loggingIn || onSplash) {
+        return '/${NavRegistry.home}';
+      }
+
+      // Showcase is always reachable for signed-in users.
       if (id == 'showcase') return null;
 
+      // Role guard for shell destinations.
       final item = NavRegistry.findById(id);
-      // Unknown route → dashboard.
       if (item == null) return '/${NavRegistry.home}';
-      // Role not permitted → dashboard.
-      if (!item.availableFor(role)) return '/${NavRegistry.home}';
+      final role = auth.session?.role;
+      if (role != null && !item.availableFor(role)) {
+        return '/${NavRegistry.home}';
+      }
       return null;
     },
     routes: [
-      // Standalone showcase (outside the shell), handy for design review.
-      GoRoute(
-        path: '/showcase',
-        //builder: (context, state) => const ShowcaseScreen(),
-      ),
+      GoRoute(path: '/splash', builder: (context, state) => const _Splash()),
+      GoRoute(path: '/auth', builder: (context, state) => const LoginScreen()),
 
       ShellRoute(
         builder: (context, state, child) =>
@@ -61,17 +76,72 @@ final routerProvider = Provider<GoRouter>((ref) {
 });
 
 /// Maps a nav item to its screen. Real screens replace these builders as each
-/// domain is ported; for now every destination is a themed placeholder.
+/// domain is ported; for now only the dashboard is live.
 Widget _destinationFor(NavItem item) {
-  // Phase note tailored so the roadmap is legible while clicking around.
+  if (item.id == 'dashboard') return const DashboardScreen();
+
   final note = switch (item.id) {
-    'dashboard' => 'Phase 3 — first live slice',
     'students' => 'Phase 4',
     _ => 'Later phase',
   };
-  return ComingSoonScreen(
-    title: item.label,
-    icon: item.icon,
-    phaseNote: note,
-  );
+  return ComingSoonScreen(title: item.label, icon: item.icon, phaseNote: note);
+}
+
+/// Bridges Riverpod auth-state changes into a [Listenable] go_router can watch,
+/// so the redirect re-runs the moment the user logs in or out.
+class _AuthRefresh extends ChangeNotifier {
+  _AuthRefresh(Ref ref) {
+    _sub = ref.listen<AuthState>(
+      authProvider,
+      (_, __) => notifyListeners(),
+      fireImmediately: false,
+    );
+  }
+  late final ProviderSubscription<AuthState> _sub;
+
+  @override
+  void dispose() {
+    _sub.close();
+    super.dispose();
+  }
+}
+
+/// A minimal splash shown while the stored session is being restored.
+class _Splash extends StatelessWidget {
+  const _Splash();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Scaffold(
+      backgroundColor: c.bg,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: c.brand,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              alignment: Alignment.center,
+              child: const Text('E',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: c.brand),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
