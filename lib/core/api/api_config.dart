@@ -68,5 +68,31 @@ abstract final class Endpoints {
   static String resetStaffPassword(String newPasswordStaffId, String newPassword) =>
       '${ApiConfig.admin}${ApiConfig.v1}/reset-staff-password'
           '?newPasswordStaffId=$newPasswordStaffId&newPassword=$newPassword';
+
+  // ---- Academics: Semesters ----
+  static const String loadSemesters =
+      '${ApiConfig.staff}${ApiConfig.v1}/load-semesters';
+  static String searchSemester(String id) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/search-semester/$id';
+  static const String addSemester =
+      '${ApiConfig.admin}${ApiConfig.v1}/add-semester';
+  static const String updateSemester =
+      '${ApiConfig.admin}${ApiConfig.v1}/update-semester-info';
+
+  // ---- Academics: Subjects ----
+  static String loadSubjects(String levelId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/load-subjects/$levelId';
+  static String loadSubjectData(String subjectId) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/load-subject-data/$subjectId';
+  static const String addSubject =
+      '${ApiConfig.admin}${ApiConfig.v1}/add-subject';
+  static const String updateSubject =
+      '${ApiConfig.admin}${ApiConfig.v1}/update-subject-details';
+
+  // ---- Academics: Grading ----
+  static const String loadGradingCriteria =
+      '${ApiConfig.admin}${ApiConfig.v1}/load-grading-criteria';
+  static const String newGradingCriteria =
+      '${ApiConfig.admin}${ApiConfig.v1}/new-grading-criteria';
 }
 
