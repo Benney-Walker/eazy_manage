@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_providers.dart';
 import 'academics_models.dart';
+import 'academics_models.dart';
 import 'academics_repository.dart';
 
 final academicsRepositoryProvider = Provider<AcademicsRepository>((ref) {
@@ -11,7 +12,7 @@ final academicsRepositoryProvider = Provider<AcademicsRepository>((ref) {
 // ---- Semesters ------------------------------------------------------------
 
 final semestersProvider =
-    FutureProvider.autoDispose<List<SemesterSummary>>((ref) async {
+FutureProvider.autoDispose<List<SemesterSummary>>((ref) async {
   return ref.watch(academicsRepositoryProvider).loadSemesters();
 });
 
@@ -26,23 +27,41 @@ final semesterDetailProvider = FutureProvider.autoDispose
 final subjectsClassProvider = StateProvider<String?>((ref) => null);
 
 final subjectsProvider =
-    FutureProvider.autoDispose<List<SubjectSummary>>((ref) async {
+FutureProvider.autoDispose<List<SubjectSummary>>((ref) async {
   final levelId = ref.watch(subjectsClassProvider);
   if (levelId == null) return const [];
   return ref.watch(academicsRepositoryProvider).loadSubjects(levelId);
 });
 
 final subjectDetailProvider =
-    FutureProvider.autoDispose.family<SubjectDetail, String>((ref, id) async {
+FutureProvider.autoDispose.family<SubjectDetail, String>((ref, id) async {
   return ref.watch(academicsRepositoryProvider).findSubject(id);
 });
 
 // ---- Grading --------------------------------------------------------------
 
 final gradingCriteriaProvider =
-    FutureProvider.autoDispose<List<GradingCriteria>>((ref) async {
+FutureProvider.autoDispose<List<GradingCriteria>>((ref) async {
   final list = await ref.watch(academicsRepositoryProvider).loadGradingCriteria();
   // Sort by lowerRange descending so the highest band shows first (A at top).
   final sorted = [...list]..sort((a, b) => b.lowerRange.compareTo(a.lowerRange));
+  return sorted;
+});
+
+// ---- Classes---------------------------------------------------------
+
+/// Full detail for one class, keyed by levelId (for the edit sheet).
+final classDetailProvider =
+FutureProvider.autoDispose.family<ClassDetail, String>((ref, levelId) async {
+  return ref.watch(academicsRepositoryProvider).findClass(levelId);
+});
+
+// ---- Holidays --------------------------------------------------------
+
+final holidaysProvider =
+FutureProvider.autoDispose<List<Holiday>>((ref) async {
+  final list = await ref.watch(academicsRepositoryProvider).loadHolidays();
+  // Most recent first by start date (string ISO sorts correctly).
+  final sorted = [...list]..sort((a, b) => b.startDate.compareTo(a.startDate));
   return sorted;
 });

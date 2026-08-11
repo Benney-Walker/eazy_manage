@@ -4,7 +4,7 @@ abstract final class ApiConfig {
 
   static const String LOCAL_URL = 'http://localhost:8080';
 
-  static const String BASE_URL = PRODUCTION_URL + '/api';
+  static const String BASE_URL = LOCAL_URL + '/api';
 
   // URL roots
   static const String finance = '/finance';
@@ -94,5 +94,22 @@ abstract final class Endpoints {
       '${ApiConfig.admin}${ApiConfig.v1}/load-grading-criteria';
   static const String newGradingCriteria =
       '${ApiConfig.admin}${ApiConfig.v1}/new-grading-criteria';
+
+  // ---- Academics: Classes (6b) ----
+  static String findClassInfo(String levelId) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/find-class-info/$levelId';
+  static String addNewClass(String gradeName, String instructorId) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/add-new-class'
+          '?gradeName=$gradeName&instructorId=$instructorId';
+  static const String updateClassInfo =
+      '${ApiConfig.admin}${ApiConfig.v1}/update-class-info';
+
+  // ---- Academics: Holidays (6b) ----
+  static const String loadHolidays =
+      '${ApiConfig.admin}${ApiConfig.v1}/load-holidays';
+  static const String addHoliday =
+      '${ApiConfig.admin}${ApiConfig.v1}/add-holiday';
+  static const String updateHoliday =
+      '${ApiConfig.admin}${ApiConfig.v1}/update-holiday';
 }
 

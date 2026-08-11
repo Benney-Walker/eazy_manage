@@ -5,6 +5,8 @@ import '../../../core/theme/app_dimens.dart';
 import 'semesters_tab.dart';
 import 'subjects_tab.dart';
 import 'grading_tab.dart';
+import 'classes_tab.dart';
+import 'holidays_tab.dart';
 
 /// The Academic Setup surface. Phase 6a covers three of the five JavaFX tabs:
 /// Semesters, Subjects, Grading. (Classes + Holidays land in Phase 6b.)
@@ -17,7 +19,7 @@ class AcademicSetupScreen extends StatefulWidget {
 
 class _AcademicSetupScreenState extends State<AcademicSetupScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 3, vsync: this);
+  late final TabController _tabs = TabController(length: 5, vsync: this);
 
   @override
   void dispose() {
@@ -45,9 +47,11 @@ class _AcademicSetupScreenState extends State<AcademicSetupScreen>
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               tabs: const [
+                Tab(text: 'Classes'),
                 Tab(text: 'Semesters'),
                 Tab(text: 'Subjects'),
                 Tab(text: 'Grading'),
+                Tab(text: 'Holidays'),
               ],
             ),
           ),
@@ -56,9 +60,11 @@ class _AcademicSetupScreenState extends State<AcademicSetupScreen>
           child: TabBarView(
             controller: _tabs,
             children: const [
+              ClassesTab(),
               SemestersTab(),
               SubjectsTab(),
               GradingTab(),
+              HolidaysTab(),
             ],
           ),
         ),

@@ -1,14 +1,6 @@
-/// Models for the Academics domain (Phase 6a: Semesters, Subjects, Grading).
-/// Field names mirror the JavaFX DTOs exactly, including the quirks where the
-/// list, find, add, and update endpoints use slightly different keys for the
-/// same concept.
-
 // ===========================================================================
 // SEMESTERS
 // ===========================================================================
-
-/// List row — `GET /staff/v1/load-semesters` (mirrors `CachedSemesters`).
-/// Note: `semesterId` (lowercase d) here.
 class SemesterSummary {
   final String semesterId;
   final String semesterName;
@@ -27,9 +19,6 @@ class SemesterSummary {
       );
 }
 
-/// Full detail — `GET /admin/v1/search-semester/{id}` (mirrors `FindSemester`)
-/// and the body for `PUT /admin/v1/update-semester-info`.
-/// Note: `semesterID` (capital D) and `semesterStartDate` / `semesterEndDate`.
 class SemesterDetail {
   final String semesterID;
   final String semesterName;
@@ -76,8 +65,6 @@ class SemesterDetail {
       );
 }
 
-/// Body for `POST /admin/v1/add-semester`.
-/// Note: `startDate` / `endDate` (not the `semester*` prefixed variants).
 class NewSemesterRequest {
   final String semesterName;
   final String startDate; // ISO yyyy-MM-dd
@@ -103,7 +90,6 @@ class NewSemesterRequest {
 // SUBJECTS
 // ===========================================================================
 
-/// List row — `GET /staff/v1/load-subjects/{levelId}` (mirrors `SubjectsHolder`).
 class SubjectSummary {
   final String subjectId;
   final String subjectName;
@@ -116,8 +102,6 @@ class SubjectSummary {
       );
 }
 
-/// Full detail — `GET /admin/v1/load-subject-data/{id}` (mirrors `SubjectDTO`)
-/// and the body for `PUT /admin/v1/update-subject-details`.
 class SubjectDetail {
   final String subjectId;
   final String subjectName;
@@ -201,5 +185,129 @@ class GradingCriteria {
   static double _toDouble(dynamic v) {
     if (v is num) return v.toDouble();
     return double.tryParse('$v') ?? 0;
+  }
+}
+
+// ===========================================================================
+// CLASSES
+// ===========================================================================
+
+class ClassDetail {
+  final String levelId;
+  final String levelName;
+  final String staffId; // instructor
+
+  const ClassDetail({
+    required this.levelId,
+    required this.levelName,
+    required this.staffId,
+  });
+
+  factory ClassDetail.fromJson(Map<String, dynamic> j) => ClassDetail(
+    levelId: (j['levelId'] ?? '').toString(),
+    levelName: (j['levelName'] ?? '').toString(),
+    staffId: (j['staffId'] ?? '').toString(),
+  );
+
+  Map<String, dynamic> toUpdateJson() => {
+    'levelId': levelId,
+    'levelName': levelName,
+    'staffId': staffId,
+  };
+
+  ClassDetail copyWith({String? levelName, String? staffId}) => ClassDetail(
+    levelId: levelId,
+    levelName: levelName ?? this.levelName,
+    staffId: staffId ?? this.staffId,
+  );
+}
+
+// ===========================================================================
+// HOLIDAYS
+// ===========================================================================
+
+class Holiday {
+  final int holidayId;
+  final String holidayName; // enum value
+  final String startDate;
+  final String endDate;
+  final String semesterId;
+  final String semesterName;
+  final String academicYear;
+
+  const Holiday({
+    required this.holidayId,
+    required this.holidayName,
+    required this.startDate,
+    required this.endDate,
+    required this.semesterId,
+    required this.semesterName,
+    required this.academicYear,
+  });
+
+  factory Holiday.fromJson(Map<String, dynamic> j) => Holiday(
+    holidayId: (j['holidayId'] is num)
+        ? (j['holidayId'] as num).toInt()
+        : int.tryParse('${j['holidayId']}') ?? 0,
+    holidayName: (j['holidayName'] ?? '').toString(),
+    startDate: (j['startDate'] ?? '').toString(),
+    endDate: (j['endDate'] ?? '').toString(),
+    semesterId: (j['semesterId'] ?? '').toString(),
+    semesterName: (j['semesterName'] ?? '').toString(),
+    academicYear: (j['academicYear'] ?? '').toString(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'holidayId': holidayId,
+    'holidayName': holidayName,
+    'startDate': startDate,
+    'endDate': endDate,
+    'semesterId': semesterId,
+    'semesterName': semesterName,
+    'academicYear': academicYear,
+  };
+
+  Holiday copyWith({
+    String? holidayName,
+    String? startDate,
+    String? endDate,
+    String? semesterId,
+    String? semesterName,
+    String? academicYear,
+  }) =>
+      Holiday(
+        holidayId: holidayId,
+        holidayName: holidayName ?? this.holidayName,
+        startDate: startDate ?? this.startDate,
+        endDate: endDate ?? this.endDate,
+        semesterId: semesterId ?? this.semesterId,
+        semesterName: semesterName ?? this.semesterName,
+        academicYear: academicYear ?? this.academicYear,
+      );
+}
+
+/// The holiday type enum (mirrors the JavaFX choices).
+class HolidayTypes {
+  static const publicHoliday = 'PUBLIC_HOLIDAY';
+  static const midTermBreak = 'MID_TERM_BREAK';
+  static const schoolEvent = 'SCHOOL_EVENT';
+  static const emergencyClosure = 'EMERGENCY_CLOSURE';
+
+  static const all = [
+    publicHoliday,
+    midTermBreak,
+    schoolEvent,
+    emergencyClosure,
+  ];
+
+  /// Human label (e.g. PUBLIC_HOLIDAY -> Public Holiday).
+  static String label(String raw) {
+    return switch (raw.toUpperCase()) {
+      publicHoliday => 'Public Holiday',
+      midTermBreak => 'Mid-Term Break',
+      schoolEvent => 'School Event',
+      emergencyClosure => 'Emergency Closure',
+      _ => raw,
+    };
   }
 }
