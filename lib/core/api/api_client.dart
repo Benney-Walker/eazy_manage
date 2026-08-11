@@ -3,14 +3,24 @@ import 'package:dio/dio.dart';
 import 'api_config.dart';
 import 'token_storage.dart';
 
-enum ApiFailureKind { network, unauthorized, forbidden, server, unknown }
+enum ApiFailureKind {
+  network,
+  unauthorized,
+  forbidden,
+  server,
+  unknown
+}
 
 class ApiException implements Exception {
   final String message;
   final ApiFailureKind kind;
   final int? statusCode;
 
-  const ApiException(this.message, this.kind, {this.statusCode});
+  const ApiException(
+      this.message,
+      this.kind,
+      {this.statusCode}
+      );
 
   bool get isSessionExpired => kind == ApiFailureKind.unauthorized;
 
@@ -18,24 +28,13 @@ class ApiException implements Exception {
   String toString() => 'ApiException($kind, $statusCode): $message';
 }
 
-/// Called when any request comes back 401 — lets the app clear the session and
-/// bounce to login without every call site handling it.
 typedef OnUnauthorized = void Function();
 
-/// Wraps Dio with the app's conventions:
-///   * base URL from [ApiConfig]
-///   * every request carries `Authorization: Bearer <token>` + `staffId`
-///     (read from secure storage), matching the JavaFX header contract
-///   * backend `{message}` bodies become the [ApiException.message]
-///   * 401 triggers the [onUnauthorized] hook (session-expiry handling)
 class ApiClient {
   final Dio _dio;
   final TokenStorage _storage;
   OnUnauthorized? onUnauthorized;
 
-  /// In-memory copy of the current token + staffId. Set the moment login
-  /// succeeds (and on restore) so the request interceptor never has to wait
-  /// on—or race—the secure-storage read. Falls back to storage if unset.
   String? _tokenInMemory;
   String? _staffIdInMemory;
 
@@ -65,11 +64,23 @@ class ApiClient {
           // Login is the one call that must NOT carry a stale token/staffId.
           final isAuthCall = options.path.contains('${ApiConfig.auth}/');
           if (!isAuthCall) {
+
             final token = _tokenInMemory ?? await _storage.token;
             final staffId = _staffIdInMemory ?? await _storage.staffId;
-            if (token != null && token.isNotEmpty) {
-              options.headers['Authorization'] = 'Bearer $token';
+
+            if (token == null || token.isEmpty) {
+
+              return handler.reject(
+                DioException(
+                  requestOptions: options,
+                  type: DioExceptionType.cancel,
+                  error: 'No auth token available for ${options.path}',
+                ),
+                true,
+              );
             }
+
+            options.headers['Authorization'] = 'Bearer $token';
             if (staffId != null && staffId.isNotEmpty) {
               options.headers['staffId'] = staffId;
             }
@@ -118,6 +129,13 @@ class ApiClient {
     try {
       res = await run();
     } on DioException catch (e) {
+
+      if (e.type == DioExceptionType.cancel) {
+        throw const ApiException(
+          'Not authenticated. Please sign in again.',
+          ApiFailureKind.unauthorized,
+        );
+      }
       // Transport-level failures (no connection, timeout, DNS, etc.)
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||

@@ -2,8 +2,6 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_config.dart';
 import 'academics_models.dart';
 
-/// All Academics data access (Phase 6a). Endpoints mirror the JavaFX
-/// `AcademicsService`.
 class AcademicsRepository {
   final ApiClient _api;
 
@@ -12,7 +10,7 @@ class AcademicsRepository {
   // ---- Semesters ----------------------------------------------------------
 
   Future<List<SemesterSummary>> loadSemesters() async {
-    final res = await _api.get(Endpoints.loadSemesters);
+    final res = await _api.get(Endpoints.loadSemesters, triggerLogoutOn401: false);
     final list = res.data;
     if (list is List) {
       return list
@@ -24,7 +22,7 @@ class AcademicsRepository {
   }
 
   Future<SemesterDetail> findSemester(String id) async {
-    final res = await _api.get(Endpoints.searchSemester(id));
+    final res = await _api.get(Endpoints.searchSemester(id), triggerLogoutOn401: false);
     final data = res.data;
     if (data is Map<String, dynamic>) return SemesterDetail.fromJson(data);
     throw const ApiException('Could not read semester.', ApiFailureKind.unknown);
@@ -41,7 +39,7 @@ class AcademicsRepository {
   // ---- Subjects -----------------------------------------------------------
 
   Future<List<SubjectSummary>> loadSubjects(String levelId) async {
-    final res = await _api.get(Endpoints.loadSubjects(levelId));
+    final res = await _api.get(Endpoints.loadSubjects(levelId), triggerLogoutOn401: false);
     final list = res.data;
     if (list is List) {
       return list
@@ -53,7 +51,7 @@ class AcademicsRepository {
   }
 
   Future<SubjectDetail> findSubject(String subjectId) async {
-    final res = await _api.get(Endpoints.loadSubjectData(subjectId));
+    final res = await _api.get(Endpoints.loadSubjectData(subjectId), triggerLogoutOn401: false);
     final data = res.data;
     if (data is Map<String, dynamic>) return SubjectDetail.fromJson(data);
     throw const ApiException('Could not read subject.', ApiFailureKind.unknown);
@@ -70,7 +68,7 @@ class AcademicsRepository {
   // ---- Grading ------------------------------------------------------------
 
   Future<List<GradingCriteria>> loadGradingCriteria() async {
-    final res = await _api.get(Endpoints.loadGradingCriteria);
+    final res = await _api.get(Endpoints.loadGradingCriteria, triggerLogoutOn401: false);
     final list = res.data;
     if (list is List) {
       return list
@@ -81,8 +79,6 @@ class AcademicsRepository {
     return const [];
   }
 
-  /// Add or update a grading band (both go through the same POST, matching
-  /// the JavaFX flow — the backend upserts by id).
   Future<void> saveGradingCriteria(GradingCriteria criteria) async {
     await _api.post(Endpoints.newGradingCriteria, body: criteria.toJson());
   }
