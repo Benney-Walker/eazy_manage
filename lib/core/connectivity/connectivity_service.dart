@@ -7,6 +7,7 @@ import '../api/api_config.dart';
 
 enum NetworkStatus { online, offline, checking }
 
+
 class ConnectivityService {
   final Connectivity _connectivity;
   final Dio _probe;
@@ -28,18 +29,21 @@ class ConnectivityService {
               validateStatus: (_) => true,
             ));
 
+  /// Broadcast stream of status changes. Late subscribers get the current
+  /// status replayed via [current].
   Stream<NetworkStatus> get onStatusChange => _controller.stream;
 
   NetworkStatus get current => _last;
 
+  /// Begin monitoring. Safe to call once; wires the interface listener and
+  /// starts the periodic re-probe. The initial probe is driven by the caller
+  /// via [checkNow] so its result can be awaited directly.
   void start() {
     _sub ??= _connectivity.onConnectivityChanged.listen((_) => _evaluate());
     _timer ??= Timer.periodic(
       const Duration(seconds: 20),
-      (_) => _evaluate(),
+          (_) => _evaluate(),
     );
-    // Fire an initial evaluation.
-    _evaluate();
   }
 
   /// Force an immediate re-check (used by the manual "Sync now" flow and on
@@ -56,26 +60,44 @@ class ConnectivityService {
   }
 
   Future<NetworkStatus> _determine() async {
-    // 1) Interface check.
-    final results = await _connectivity.checkConnectivity();
-    final hasInterface =
-        results.any((r) => r != ConnectivityResult.none) && results.isNotEmpty;
-    if (!hasInterface) return NetworkStatus.offline;
-
-    // 2) Reachability probe against the API.
+    // 1) Interface check. If connectivity_plus fails or is unreliable on this
+    // platform (it can be flaky on desktop), don't get stuck — fall through to
+    // the reachability probe, which is the authoritative signal anyway.
     try {
-      // A HEAD to the base URL; any HTTP response means the server answered.
-      await _probe.head('/');
+      final results = await _connectivity.checkConnectivity();
+      final hasInterface =
+          results.isNotEmpty && results.any((r) => r != ConnectivityResult.none);
+      if (!hasInterface) {
+        // No interface reported. Double-check with the probe before declaring
+        // offline, since desktop connectivity_plus sometimes under-reports.
+        return await _probeReachable();
+      }
+    } catch (_) {
+      // Ignore and let the probe decide.
+    }
+
+    // 2) Reachability probe against the server (authoritative).
+    return _probeReachable();
+  }
+
+  Future<NetworkStatus> _probeReachable() async {
+    try {
+      // A GET to the server root. We don't care about the status code — a 404
+      // or 401 still proves the server answered, which is all "reachable"
+      // means. HEAD is avoided because some servers reject or hang on it.
+      await _probe.get('/');
       return NetworkStatus.online;
     } on DioException catch (e) {
-      // Only genuine connection failures mean offline; an HTTP error status
-      // still means the server was reachable.
+      // Only genuine connection failures mean offline; any HTTP response
+      // (even an error status) means the server was reachable.
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.sendTimeout) {
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.badCertificate) {
         return NetworkStatus.offline;
       }
+      // badResponse / cancel / unknown-with-a-response → server answered.
       return NetworkStatus.online;
     } catch (_) {
       return NetworkStatus.offline;

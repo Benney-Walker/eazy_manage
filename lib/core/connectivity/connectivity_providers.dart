@@ -23,8 +23,13 @@ class NetworkStatusController extends Notifier<NetworkStatus> {
     _sub = service.onStatusChange.listen((status) => state = status);
     ref.onDispose(() => _sub?.cancel());
 
-    // Kick off monitoring; the initial probe updates state shortly.
+    // Start interface monitoring + the periodic re-probe.
     service.start();
+
+    service.checkNow().then((status) {
+      state = status;
+    });
+
     return service.current;
   }
 
@@ -35,8 +40,8 @@ class NetworkStatusController extends Notifier<NetworkStatus> {
 }
 
 final networkStatusProvider =
-    NotifierProvider<NetworkStatusController, NetworkStatus>(
-        NetworkStatusController.new);
+NotifierProvider<NetworkStatusController, NetworkStatus>(
+    NetworkStatusController.new);
 
 /// Convenience: true when the app currently has a reachable server.
 final isOnlineProvider = Provider<bool>((ref) {
