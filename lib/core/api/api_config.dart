@@ -129,5 +129,12 @@ abstract final class Endpoints {
   static String fetchPaymentRecords(String studentId, String levelId, String semesterId) =>
       '${ApiConfig.finance}${ApiConfig.v1}/fetch-payment-records'
           '?studentId=$studentId&levelId=$levelId&semesterId=$semesterId';
+
+  // ---- Attendance (view-only) ----
+  static String datesMarked(String levelId, String semesterId) =>
+  '${ApiConfig.student}${ApiConfig.v1}/dates-marked/$levelId/$semesterId';
+  static String attendanceRecords(String levelId, String semesterId, String date) =>
+  '${ApiConfig.student}${ApiConfig.v1}/attendance-records'
+  '?levelId=$levelId&semesterId=$semesterId&date=$date';
 }
 

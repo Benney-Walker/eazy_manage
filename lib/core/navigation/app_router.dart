@@ -1,4 +1,4 @@
-import 'package:eazy_manage/features/staff/ui/staff_screen.dart';
+//import 'package:eazy_manage/features/staff/ui/staff_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +7,7 @@ import '../session/session.dart';
 import '../theme/app_colors.dart';
 import '../../features/auth/ui/login_screen.dart';
 import '../../features/academics/ui/academic_setup_screen.dart';
+import '../../features/attendance/ui/attendance_screen.dart';
 import '../../features/dashboard/ui/dashboard_screen.dart';
 import '../../features/finance/ui/finance_screen.dart';
 import '../../features/settings/ui/settings_screen.dart';
@@ -81,6 +82,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 Widget _destinationFor(NavItem item) {
   return switch (item.id) {
     'dashboard' => const DashboardScreen(),
+    'attendance' => const AttendanceScreen(),
     'students' => const StudentsScreen(),
     'staff' => const StaffScreen(),
     'academic-setup' => const AcademicSetupScreen(),

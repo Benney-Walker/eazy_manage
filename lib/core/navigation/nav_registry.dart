@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'nav_item.dart';
 
-/// The navigation taxonomy — a direct port of the JavaFX `NavRegistry`.
-///
-/// Sections and their items are declared once here with role visibility;
-/// [sectionsFor] filters them per role, dropping sections that end up empty.
 abstract final class NavRegistry {
   // Role bundles, matching the JavaFX sets.
   static const _all = <AppRole>{
