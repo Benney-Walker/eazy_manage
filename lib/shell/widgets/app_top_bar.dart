@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/connectivity/connectivity_providers.dart';
+import '../../core/connectivity/connectivity_service.dart';
 import '../../core/navigation/nav_item.dart';
 import '../../core/session/session.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_typography.dart';
-import '../../core/theme/theme_controller.dart';
 
-/// The workspace top bar. Carries the controls from the JavaFX shell:
-/// sidebar toggle, the current page title, a search field, an offline-mode
-/// indicator, a notification bell, and the light/dark toggle.
-///
-/// The role picker on the right is a development affordance for these early
-/// phases so nav role-filtering can be previewed without real logins. It's
-/// trivially removed once auth lands.
 class AppTopBar extends ConsumerWidget {
   final String title;
   final VoidCallback onToggleSidebar;
@@ -28,7 +22,6 @@ class AppTopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
-    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Container(
       height: 64,
@@ -50,16 +43,9 @@ class AppTopBar extends ConsumerWidget {
           const SizedBox(width: AppSpacing.xl),
           Expanded(child: _searchField(context, c)),
           const SizedBox(width: AppSpacing.lg),
-          _OfflineIndicator(),
+          const _ConnectivityChip(),
           const SizedBox(width: AppSpacing.sm),
           _notificationBell(context, c, unread: 3),
-          const SizedBox(width: AppSpacing.xs),
-          _iconButton(
-            context,
-            icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            tooltip: 'Toggle light / dark',
-            onTap: () => ref.read(themeModeProvider.notifier).toggle(),
-          ),
           const SizedBox(width: AppSpacing.sm),
           const _RoleSwitcher(),
         ],
@@ -126,11 +112,11 @@ class AppTopBar extends ConsumerWidget {
   }
 
   Widget _iconButton(
-    BuildContext context, {
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String tooltip,
+        required VoidCallback onTap,
+      }) {
     final c = AppColors.of(context);
     return Tooltip(
       message: tooltip,
@@ -150,54 +136,67 @@ class AppTopBar extends ConsumerWidget {
   }
 }
 
-/// Offline-mode chip — mirrors the JavaFX offline toggle. Tapping flips the
-/// (local) state; the real offline engine binding lands with the sync phase.
-class _OfflineIndicator extends StatefulWidget {
-  @override
-  State<_OfflineIndicator> createState() => _OfflineIndicatorState();
-}
-
-class _OfflineIndicatorState extends State<_OfflineIndicator> {
-  bool _offline = false;
+/// Read-only connectivity status label. Connectivity is now detected
+/// automatically (see [networkStatusProvider]) — the user no longer toggles it.
+/// This just reflects whether the app is working online or offline.
+class _ConnectivityChip extends ConsumerWidget {
+  const _ConnectivityChip();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = AppColors.of(context);
-    final (Color bg, Color fg, IconData icon, String label) = _offline
-        ? (c.warningSubtle, c.warning, Icons.cloud_off_rounded, 'Offline')
-        : (c.successSubtle, c.success, Icons.cloud_done_rounded, 'Online');
+    final status = ref.watch(networkStatusProvider);
+
+    final (Color bg, Color fg, IconData icon, String label) = switch (status) {
+      NetworkStatus.online => (
+      c.successSubtle,
+      c.success,
+      Icons.cloud_done_rounded,
+      'Working online',
+      ),
+      NetworkStatus.offline => (
+      c.warningSubtle,
+      c.warning,
+      Icons.cloud_off_rounded,
+      'Working offline',
+      ),
+      NetworkStatus.checking => (
+      c.bgAlt,
+      c.textSecondary,
+      Icons.cloud_sync_rounded,
+      'Checking…',
+      ),
+    };
 
     return Tooltip(
-      message: 'Toggle online / offline mode',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => setState(() => _offline = !_offline),
+      message: switch (status) {
+        NetworkStatus.online => 'Connected to the server',
+        NetworkStatus.offline =>
+        'No server connection — changes will sync when back online',
+        NetworkStatus.checking => 'Checking connection…',
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm - 1,
+        ),
+        decoration: BoxDecoration(
+          color: bg,
           borderRadius: const BorderRadius.all(AppRadius.mdR),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm - 1,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: fg),
+            const SizedBox(width: AppSpacing.xs + 2),
+            Text(
+              label,
+              style: AppTypography.caption.copyWith(
+                color: fg,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: const BorderRadius.all(AppRadius.mdR),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 15, color: fg),
-                const SizedBox(width: AppSpacing.xs + 2),
-                Text(
-                  label,
-                  style: AppTypography.caption.copyWith(
-                    color: fg,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );

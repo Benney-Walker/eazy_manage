@@ -8,22 +8,17 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_typography.dart';
 
-/// The application sidebar — always dark slate in both themes (an identity
-/// marker carried over from the JavaFX shell), modernized with smoother
-/// spacing, an active pill with an accent indicator bar, and a collapse mode.
 class AppSidebar extends ConsumerWidget {
   /// Currently-selected nav id (drives the active state).
   final String activeId;
   final ValueChanged<NavItem> onSelect;
   final bool collapsed;
-  final VoidCallback onSignOut;
 
   const AppSidebar({
     super.key,
     required this.activeId,
     required this.onSelect,
     required this.collapsed,
-    required this.onSignOut,
   });
 
   static const double expandedWidth = 268;
@@ -173,7 +168,7 @@ class AppSidebar extends ConsumerWidget {
             ),
             child: Row(
               mainAxisAlignment:
-                  collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
               children: [
                 Icon(
                   item.icon,
@@ -232,7 +227,7 @@ class AppSidebar extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         mainAxisAlignment:
-            collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+        collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: [
           Container(
             width: 36,
@@ -268,15 +263,6 @@ class AppSidebar extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-              ),
-            ),
-            Tooltip(
-              message: 'Sign out',
-              child: IconButton(
-                onPressed: onSignOut,
-                icon: Icon(Icons.logout_rounded, size: 18, color: c.sidebarText),
-                splashRadius: 18,
-                visualDensity: VisualDensity.compact,
               ),
             ),
           ],

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../core/navigation/nav_item.dart';
 import '../core/navigation/nav_registry.dart';
-import '../core/session/session.dart';
 import '../core/theme/app_colors.dart';
 import 'widgets/app_sidebar.dart';
 import 'widgets/app_top_bar.dart';
@@ -48,11 +47,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     context.go(item.path);
   }
 
-  void _onSignOut() {
-    ref.read(authProvider.notifier).signOut();
-    // The router redirect reacts to the auth state change and routes to /auth.
-  }
-
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -65,7 +59,6 @@ class _AppShellState extends ConsumerState<AppShell> {
             activeId: _activeId,
             collapsed: _collapsed,
             onSelect: _onSelect,
-            onSignOut: _onSignOut,
           ),
           Expanded(
             child: Column(
