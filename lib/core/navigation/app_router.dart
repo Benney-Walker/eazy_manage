@@ -8,6 +8,7 @@ import '../theme/app_colors.dart';
 import '../../features/auth/ui/login_screen.dart';
 import '../../features/academics/ui/academic_setup_screen.dart';
 import '../../features/dashboard/ui/dashboard_screen.dart';
+import '../../features/finance/ui/finance_screen.dart';
 import '../../features/staff/ui/staff_screen.dart';
 import '../../features/students/ui/students_screen.dart';
 import '../../shell/app_shell.dart';
@@ -82,6 +83,7 @@ Widget _destinationFor(NavItem item) {
     'students' => const StudentsScreen(),
     'staff' => const StaffScreen(),
     'academic-setup' => const AcademicSetupScreen(),
+    'finance' => const FinanceScreen(),
     _ => ComingSoonScreen(
         title: item.label, icon: item.icon, phaseNote: 'Later phase'),
   };

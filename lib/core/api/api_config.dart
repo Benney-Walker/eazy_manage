@@ -111,5 +111,23 @@ abstract final class Endpoints {
       '${ApiConfig.admin}${ApiConfig.v1}/add-holiday';
   static const String updateHoliday =
       '${ApiConfig.admin}${ApiConfig.v1}/update-holiday';
+
+  // ---- Finance: Fees Setup ----
+  static String fetchFeesDetails(String semesterId, String levelId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/fetch-fees-details/$semesterId/$levelId';
+  static String newFees(String classId, String semesterId, String feesAmount) =>
+      '${ApiConfig.finance}${ApiConfig.v2}/new-fees'
+          '?classId=$classId&semesterId=$semesterId&feesAmount=$feesAmount';
+  static const String updateSemesterFees =
+      '${ApiConfig.finance}${ApiConfig.v2}/update-semester-fees';
+
+  // ---- Finance: Payments ----
+  static const String addFeesPayment =
+      '${ApiConfig.finance}${ApiConfig.v1}/add-fees-payment';
+  static const String updatePaymentDetails =
+      '${ApiConfig.finance}${ApiConfig.v1}/update-payment-details';
+  static String fetchPaymentRecords(String studentId, String levelId, String semesterId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/fetch-payment-records'
+          '?studentId=$studentId&levelId=$levelId&semesterId=$semesterId';
 }
 
