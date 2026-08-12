@@ -149,5 +149,19 @@ abstract final class Endpoints {
       '${ApiConfig.student}${ApiConfig.v1}/load-subject-students/$subjectId/$semesterId';
   static const String saveScores =
       '${ApiConfig.student}${ApiConfig.v1}/save-scores';
+
+  // ---- Broadcasts (messaging) ----
+  static const String broadcastSms =
+      '${ApiConfig.admin}${ApiConfig.v1}/broadcasts-message';
+  static const String broadcastEmail =
+      '${ApiConfig.admin}${ApiConfig.v1}/broadcast-email';
+
+  // ---- Audit Logs ----
+  static String staffLogs(String selectedStaffId, String fromDate, String toDate) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/get-staff-logs'
+          '?selectedStaffId=$selectedStaffId&fromDate=$fromDate&toDate=$toDate';
+  static String timelyLogs(String fromDate, String toDate) =>
+      '${ApiConfig.admin}${ApiConfig.v1}/get-timely-logs'
+          '?fromDate=$fromDate&toDate=$toDate';
 }
 
