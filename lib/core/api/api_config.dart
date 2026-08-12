@@ -136,5 +136,12 @@ abstract final class Endpoints {
   static String attendanceRecords(String levelId, String semesterId, String date) =>
   '${ApiConfig.student}${ApiConfig.v1}/attendance-records'
   '?levelId=$levelId&semesterId=$semesterId&date=$date';
+
+  // ---- Conduct ----
+  static String conductRecords(String levelId, String semesterId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/conduct-records'
+          '?levelId=$levelId&semesterId=$semesterId';
+  static const String saveConductRecord =
+      '${ApiConfig.staff}${ApiConfig.v1}/save-conduct-record';
 }
 

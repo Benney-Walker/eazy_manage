@@ -8,6 +8,7 @@ import '../theme/app_colors.dart';
 import '../../features/auth/ui/login_screen.dart';
 import '../../features/academics/ui/academic_setup_screen.dart';
 import '../../features/attendance/ui/attendance_screen.dart';
+import '../../features/conduct/ui/conduct_screen.dart';
 import '../../features/dashboard/ui/dashboard_screen.dart';
 import '../../features/finance/ui/finance_screen.dart';
 import '../../features/settings/ui/settings_screen.dart';
@@ -83,6 +84,7 @@ Widget _destinationFor(NavItem item) {
   return switch (item.id) {
     'dashboard' => const DashboardScreen(),
     'attendance' => const AttendanceScreen(),
+    'conduct' => const ConductScreen(),
     'students' => const StudentsScreen(),
     'staff' => const StaffScreen(),
     'academic-setup' => const AcademicSetupScreen(),
