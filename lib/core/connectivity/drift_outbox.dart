@@ -48,25 +48,23 @@ class DriftOutbox implements Outbox {
   // ---- Mapping ----
 
   OutboxEntry _toEntry(OutboxRow r) => OutboxEntry(
-        id: r.id,
-        method: OutboxMethod.values.firstWhere(
+    id: r.id,
+    method: OutboxMethod.values.firstWhere(
           (m) => m.name == r.method,
-          orElse: () => OutboxMethod.post,
-        ),
-        path: r.path,
-        description: r.description,
-        queuedAt: r.queuedAt,
-        body: r.body == null
-            ? null
-            : (jsonDecode(r.body!) as Map<String, dynamic>),
-      );
+      orElse: () => OutboxMethod.post,
+    ),
+    path: r.path,
+    description: r.description,
+    queuedAt: r.queuedAt,
+    body: r.body == null ? null : jsonDecode(r.body!) as Object,
+  );
 
   OutboxRow _toRow(OutboxEntry e) => OutboxRow(
-        id: e.id,
-        method: e.method.name,
-        path: e.path,
-        description: e.description,
-        queuedAt: e.queuedAt,
-        body: e.body == null ? null : jsonEncode(e.body),
-      );
+    id: e.id,
+    method: e.method.name,
+    path: e.path,
+    description: e.description,
+    queuedAt: e.queuedAt,
+    body: e.body == null ? null : jsonEncode(e.body),
+  );
 }

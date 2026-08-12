@@ -10,6 +10,7 @@ import '../../features/academics/ui/academic_setup_screen.dart';
 import '../../features/attendance/ui/attendance_screen.dart';
 import '../../features/conduct/ui/conduct_screen.dart';
 import '../../features/dashboard/ui/dashboard_screen.dart';
+import '../../features/results/ui/results_screen.dart';
 import '../../features/finance/ui/finance_screen.dart';
 import '../../features/settings/ui/settings_screen.dart';
 import '../../features/staff/ui/staff_screen.dart';
@@ -85,6 +86,7 @@ Widget _destinationFor(NavItem item) {
     'dashboard' => const DashboardScreen(),
     'attendance' => const AttendanceScreen(),
     'conduct' => const ConductScreen(),
+    'results' => const ResultsScreen(),
     'students' => const StudentsScreen(),
     'staff' => const StaffScreen(),
     'academic-setup' => const AcademicSetupScreen(),

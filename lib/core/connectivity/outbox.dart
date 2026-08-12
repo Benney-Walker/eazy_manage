@@ -6,7 +6,8 @@ class OutboxEntry {
   final String id;
   final OutboxMethod method;
   final String path;
-  final Map<String, dynamic>? body;
+
+  final Object? body;
 
   final String description;
 

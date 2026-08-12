@@ -143,5 +143,11 @@ abstract final class Endpoints {
           '?levelId=$levelId&semesterId=$semesterId';
   static const String saveConductRecord =
       '${ApiConfig.staff}${ApiConfig.v1}/save-conduct-record';
+
+  // ---- Results (Enter Scores) ----
+  static String loadSubjectStudents(String subjectId, String semesterId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/load-subject-students/$subjectId/$semesterId';
+  static const String saveScores =
+      '${ApiConfig.student}${ApiConfig.v1}/save-scores';
 }
 

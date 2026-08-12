@@ -34,7 +34,7 @@ class LocalFirstWriter {
     required OutboxMethod method,
     required String path,
     required String description,
-    Map<String, dynamic>? body,
+    Object? body,
   }) async {
     final entry = OutboxEntry(
       id: _newId(),
