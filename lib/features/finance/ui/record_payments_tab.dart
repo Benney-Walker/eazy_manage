@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/connectivity/connectivity_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -13,6 +14,8 @@ import '../../students/data/student_providers.dart';
 import '../data/finance_models.dart';
 import '../data/finance_providers.dart';
 
+/// Record Payments: pick a student in the current class + semester, see their
+/// payment history, and record a new payment or edit an existing one.
 class RecordPaymentsTab extends ConsumerWidget {
   const RecordPaymentsTab({super.key});
 
@@ -55,7 +58,7 @@ class RecordPaymentsTab extends ConsumerWidget {
               color: c.surface,
               borderRadius: const BorderRadius.all(AppRadius.mdR),
               border:
-                  Border.all(color: c.borderStrong, width: AppStroke.hairline),
+              Border.all(color: c.borderStrong, width: AppStroke.hairline),
             ),
             child: DropdownButtonHideUnderline(
               child: rosterAsync.when(
@@ -85,7 +88,7 @@ class RecordPaymentsTab extends ConsumerWidget {
                         ),
                     ],
                     onChanged: (v) =>
-                        ref.read(financeStudentIdProvider.notifier).state = v,
+                    ref.read(financeStudentIdProvider.notifier).state = v,
                   );
                 },
               ),
@@ -137,7 +140,7 @@ class RecordPaymentsTab extends ConsumerWidget {
         }
         final total = records.fold<double>(
           0,
-          (sum, r) => sum + (double.tryParse(r.amount) ?? 0),
+              (sum, r) => sum + (double.tryParse(r.amount) ?? 0),
         );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,7 +150,7 @@ class RecordPaymentsTab extends ConsumerWidget {
                   bottom: AppSpacing.sm, left: AppSpacing.xs),
               child: Text(
                 '${records.length} payment${records.length == 1 ? '' : 's'}'
-                '  ·  ₵${_fmt(total)} total',
+                    '  ·  ₵${_fmt(total)} total',
                 style: AppTypography.caption.copyWith(color: c.textSecondary),
               ),
             ),
@@ -179,10 +182,10 @@ class RecordPaymentsTab extends ConsumerWidget {
   }
 
   Widget _hint(AppColors c, String text) => Align(
-        alignment: Alignment.centerLeft,
-        child:
-            Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
-      );
+    alignment: Alignment.centerLeft,
+    child:
+    Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
+  );
 
   void _openEditor(BuildContext context, WidgetRef ref, PaymentRecord? record) {
     showModalBottomSheet(
@@ -286,8 +289,14 @@ class _PaymentEditorState extends ConsumerState<_PaymentEditor> {
       if (!mounted) return;
       ref.invalidate(paymentRecordsProvider);
       Navigator.of(context).pop();
+      final online = ref.read(isOnlineProvider);
+      final verb = _isEdit ? 'updated' : 'recorded';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Payment updated.' : 'Payment recorded.')),
+        SnackBar(
+          content: Text(online
+              ? 'Payment $verb.'
+              : 'Payment $verb — will sync when back online.'),
+        ),
       );
     } on ApiException catch (e) {
       setState(() {

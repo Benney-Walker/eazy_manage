@@ -1,13 +1,30 @@
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_config.dart';
+import '../../../core/connectivity/local_first_writer.dart';
+import '../../../core/connectivity/outbox.dart';
 import 'finance_models.dart';
 
+/// All Finance data access (Phase 7). Endpoints mirror the JavaFX
+/// `FinanceService`. Reads pass `triggerLogoutOn401: false` so a screen
+/// loading its own data can't eject the user (the pattern established after
+/// the academics redirect fix).
+///
+/// Payment writes (add / update) are **local-first**: they go through the
+/// [LocalFirstWriter] so a save is recorded to the durable outbox immediately
+/// (instant, survives restart) and pushed to the backend now if online or on
+/// reconnect if offline. Fee-setup writes stay online-only — fee configuration
+/// isn't part of the offline-capable set (conduct, results, payments).
 class FinanceRepository {
   final ApiClient _api;
+  final LocalFirstWriter _writer;
 
-  FinanceRepository(this._api);
+  FinanceRepository(this._api, this._writer);
 
   // ---- Fees Setup ---------------------------------------------------------
+
+  /// GET /finance/v1/fetch-fees-details/{semesterId}/{levelId}.
+  /// Returns null when no fee is configured for that class + semester yet —
+  /// whether the backend signals that with an empty/zeroed body or a 404.
   Future<FeesDetails?> fetchFeesDetails({
     required String semesterId,
     required String levelId,
@@ -75,11 +92,25 @@ class FinanceRepository {
     return const [];
   }
 
+  /// POST /finance/v1/add-fees-payment — local-first. Returns as soon as the
+  /// write is queued durably; the network push happens in the background.
   Future<void> addPayment(NewPaymentRequest req) async {
-    await _api.post(Endpoints.addFeesPayment, body: req.toJson());
+    await _writer.submit(
+      method: OutboxMethod.post,
+      path: Endpoints.addFeesPayment,
+      description: 'Payment for student ${req.studentId}',
+      body: req.toJson(),
+    );
   }
 
+  /// PUT /finance/v1/update-payment-details — local-first.
   Future<void> updatePayment(PaymentRecord record) async {
-    await _api.put(Endpoints.updatePaymentDetails, body: record.toUpdateJson());
+    await _writer.submit(
+      method: OutboxMethod.put,
+      path: Endpoints.updatePaymentDetails,
+      description:
+      'Payment update for ${record.studentName} (${record.studentId})',
+      body: record.toUpdateJson(),
+    );
   }
 }

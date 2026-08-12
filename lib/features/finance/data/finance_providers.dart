@@ -1,13 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_providers.dart';
+import '../../../core/connectivity/connectivity_providers.dart';
 import 'finance_models.dart';
 import 'finance_repository.dart';
 
 final financeRepositoryProvider = Provider<FinanceRepository>((ref) {
-  return FinanceRepository(ref.watch(apiClientProvider));
+  return FinanceRepository(
+    ref.watch(apiClientProvider),
+    ref.watch(localFirstWriterProvider),
+  );
 });
 
+/// Shared Finance context — the class + semester the accountant is working in.
+/// Both the Fees Setup and Record Payments tabs read this so switching context
+/// in one place updates both.
 final financeLevelIdProvider = StateProvider<String?>((ref) => null);
 final financeSemesterIdProvider = StateProvider<String?>((ref) => null);
 
@@ -21,7 +28,7 @@ final financeContextReadyProvider = Provider<bool>((ref) {
 
 /// The fee for the current class + semester (null = not configured yet).
 final feesDetailsProvider =
-    FutureProvider.autoDispose<FeesDetails?>((ref) async {
+FutureProvider.autoDispose<FeesDetails?>((ref) async {
   final levelId = ref.watch(financeLevelIdProvider);
   final semesterId = ref.watch(financeSemesterIdProvider);
   if (levelId == null || semesterId == null) return null;
@@ -37,7 +44,7 @@ final financeStudentIdProvider = StateProvider<String?>((ref) => null);
 
 /// Payment records for the chosen student in the current class + semester.
 final paymentRecordsProvider =
-    FutureProvider.autoDispose<List<PaymentRecord>>((ref) async {
+FutureProvider.autoDispose<List<PaymentRecord>>((ref) async {
   final levelId = ref.watch(financeLevelIdProvider);
   final semesterId = ref.watch(financeSemesterIdProvider);
   final studentId = ref.watch(financeStudentIdProvider);
@@ -45,8 +52,8 @@ final paymentRecordsProvider =
     return const [];
   }
   return ref.watch(financeRepositoryProvider).fetchPaymentRecords(
-        studentId: studentId,
-        levelId: levelId,
-        semesterId: semesterId,
-      );
+    studentId: studentId,
+    levelId: levelId,
+    semesterId: semesterId,
+  );
 });
