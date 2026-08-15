@@ -13,7 +13,7 @@ import '../../data/reports_providers.dart';
 import '../report_widgets.dart';
 
 /// SBA Report (sba): the school-based assessment component breakdown for one
-/// subject in a class + semester. Preview + PDF download (generate-sba-report).
+/// subject in a class + term. Preview + PDF download (generate-sba-report).
 class SbaReport extends ConsumerStatefulWidget {
   const SbaReport({super.key});
 
@@ -102,8 +102,8 @@ class _SbaReportState extends ConsumerState<SbaReport> {
                 onChanged: (v) => setState(() => _subjectId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 200,
                 items: semestersAsync.maybeWhen(
@@ -141,7 +141,7 @@ class _SbaReportState extends ConsumerState<SbaReport> {
   Widget _body(AppColors c) {
     final result = _result;
     if (result == null) {
-      return ReportStates.prompt('Choose class, subject and semester',
+      return ReportStates.prompt('Choose class, subject and term',
           'Pick all three, then Run to preview — or Download PDF directly.');
     }
     return result.when(

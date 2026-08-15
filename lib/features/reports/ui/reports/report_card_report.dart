@@ -12,7 +12,7 @@ import '../../data/report_models.dart';
 import '../../data/reports_providers.dart';
 import '../report_widgets.dart';
 
-/// Student Report Card (report-card): one student's full card for a semester —
+/// Student Report Card (report-card): one student's full card for a term —
 /// subject scores, conduct, remarks, attendance, and position.
 /// Preview + PDF download (generate-report-card).
 class ReportCardReport extends ConsumerStatefulWidget {
@@ -102,8 +102,8 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
                 onChanged: (v) => setState(() => _studentId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 200,
                 items: semestersAsync.maybeWhen(
@@ -141,7 +141,7 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
     final result = _result;
     if (result == null) {
       return ReportStates.prompt('Choose a student',
-          'Pick class, student and semester, then Run — or Download PDF.');
+          'Pick class, student and term, then Run — or Download PDF.');
     }
     return result.when(
       loading: () => ReportStates.loading(c),
@@ -149,7 +149,7 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
       data: (card) {
         if (card == null) {
           return ReportStates.empty(
-              'No report card', 'No report card for this student and semester.');
+              'No report card', 'No report card for this student and term.');
         }
         return SingleChildScrollView(child: _card(c, card));
       },
@@ -185,7 +185,7 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
                     if (r.academicYear.isNotEmpty) r.academicYear,
                   ].join('  ·  '),
                   style:
-                  AppTypography.caption.copyWith(color: c.textSecondary)),
+                      AppTypography.caption.copyWith(color: c.textSecondary)),
               const SizedBox(height: AppSpacing.md),
               Wrap(spacing: AppSpacing.xl, runSpacing: AppSpacing.md, children: [
                 _stat(c, 'Total', r.totalScore),
@@ -306,20 +306,20 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
 
   Widget _conduct(AppColors c, ReportCardConduct cd) {
     Widget rating(String label, String value) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(children: [
-        SizedBox(
-            width: 160,
-            child: Text(label,
-                style: AppTypography.body
-                    .copyWith(color: c.textSecondary))),
-        Expanded(
-          child: Text(value.isEmpty ? '—' : value.replaceAll('_', ' '),
-              style:
-              AppTypography.bodyStrong.copyWith(color: c.textPrimary)),
-        ),
-      ]),
-    );
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(children: [
+            SizedBox(
+                width: 160,
+                child: Text(label,
+                    style: AppTypography.body
+                        .copyWith(color: c.textSecondary))),
+            Expanded(
+              child: Text(value.isEmpty ? '—' : value.replaceAll('_', ' '),
+                  style:
+                      AppTypography.bodyStrong.copyWith(color: c.textPrimary)),
+            ),
+          ]),
+        );
 
     return Container(
       width: double.infinity,

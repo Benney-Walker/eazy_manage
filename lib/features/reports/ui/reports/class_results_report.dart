@@ -12,7 +12,7 @@ import '../../data/reports_providers.dart';
 import '../report_widgets.dart';
 
 /// Class Results (class-results): each student's totals, average and position
-/// for a class + semester. Preview + PDF download (generate-class-report).
+/// for a class + term. Preview + PDF download (generate-class-report).
 class ClassResultsReport extends ConsumerStatefulWidget {
   const ClassResultsReport({super.key});
 
@@ -79,8 +79,8 @@ class _ClassResultsReportState extends ConsumerState<ClassResultsReport> {
                 onChanged: (v) => setState(() => _levelId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 240,
                 items: semestersAsync.maybeWhen(
@@ -117,7 +117,7 @@ class _ClassResultsReportState extends ConsumerState<ClassResultsReport> {
   Widget _body(AppColors c) {
     final result = _result;
     if (result == null) {
-      return ReportStates.prompt('Choose class and semester',
+      return ReportStates.prompt('Choose class and term',
           'Pick both, then Run to preview — or Download PDF directly.');
     }
     return result.when(
@@ -126,7 +126,7 @@ class _ClassResultsReportState extends ConsumerState<ClassResultsReport> {
       data: (rows) {
         if (rows.isEmpty) {
           return ReportStates.empty(
-              'No results', 'No results for this class and semester.');
+              'No results', 'No results for this class and term.');
         }
         return ReportTable(
           header: _header(c),

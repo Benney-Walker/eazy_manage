@@ -64,7 +64,7 @@ class ReportCatalogue {
       title: 'SBA Report',
       description:
           'School-based assessment breakdown for one subject: each component '
-          'score per student for a class and semester.',
+          'score per student for a class and term.',
       icon: Icons.fact_check_rounded,
       roles: _adminPrincipal,
     ),
@@ -72,7 +72,7 @@ class ReportCatalogue {
       id: 'report-card',
       title: 'Student Report Card',
       description:
-          'Individual report card for one student and semester — subject '
+          'Individual report card for one student and term — subject '
           'scores, conduct, remarks, and attendance.',
       icon: Icons.badge_rounded,
       roles: _notAccountant,
@@ -82,7 +82,7 @@ class ReportCatalogue {
       title: 'Class Payments',
       description:
           'Fees paid and outstanding for every student in a class for a '
-          'semester.',
+          'term.',
       icon: Icons.account_balance_wallet_rounded,
       roles: _accountantPrincipal,
     ),
@@ -91,7 +91,7 @@ class ReportCatalogue {
       title: 'Student Payments',
       description:
           'One student\'s fee position and full payment history for a '
-          'semester.',
+          'term.',
       icon: Icons.receipt_rounded,
       roles: _accountantPrincipal,
     ),

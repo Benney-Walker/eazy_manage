@@ -79,8 +79,8 @@ class _MasterSheetReportState extends ConsumerState<MasterSheetReport> {
                 onChanged: (v) => setState(() => _levelId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 240,
                 items: semestersAsync.maybeWhen(
@@ -117,7 +117,7 @@ class _MasterSheetReportState extends ConsumerState<MasterSheetReport> {
   Widget _body(AppColors c) {
     final result = _result;
     if (result == null) {
-      return ReportStates.prompt('Choose class and semester',
+      return ReportStates.prompt('Choose class and term',
           'Pick both, then Run to preview — or Download PDF directly.');
     }
     return result.when(
@@ -126,7 +126,7 @@ class _MasterSheetReportState extends ConsumerState<MasterSheetReport> {
       data: (sheet) {
         if (sheet == null || sheet.records.isEmpty) {
           return ReportStates.empty(
-              'No data', 'No master sheet data for this class and semester.');
+              'No data', 'No master sheet data for this class and term.');
         }
         return _grid(c, sheet);
       },

@@ -11,7 +11,7 @@ import '../../data/reports_providers.dart';
 import '../report_widgets.dart';
 
 /// Class Payments (grade-payments): fees paid/outstanding for every student in
-/// a class for a semester. Preview only (no PDF endpoint).
+/// a class for a term. Preview only (no PDF endpoint).
 class GradePaymentsReport extends ConsumerStatefulWidget {
   const GradePaymentsReport({super.key});
 
@@ -75,8 +75,8 @@ class _GradePaymentsReportState extends ConsumerState<GradePaymentsReport> {
                 onChanged: (v) => setState(() => _levelId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 240,
                 items: semestersAsync.maybeWhen(
@@ -107,7 +107,7 @@ class _GradePaymentsReportState extends ConsumerState<GradePaymentsReport> {
   Widget _body(AppColors c) {
     final result = _result;
     if (result == null) {
-      return ReportStates.prompt('Choose class and semester',
+      return ReportStates.prompt('Choose class and term',
           'Pick both, then Run to see class payments.');
     }
     return result.when(
@@ -116,7 +116,7 @@ class _GradePaymentsReportState extends ConsumerState<GradePaymentsReport> {
       data: (rows) {
         if (rows.isEmpty) {
           return ReportStates.empty(
-              'No records', 'No payment data for this class and semester.');
+              'No records', 'No payment data for this class and term.');
         }
         return ReportTable(
           header: _header(c),

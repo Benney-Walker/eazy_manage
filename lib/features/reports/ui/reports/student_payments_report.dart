@@ -12,7 +12,7 @@ import '../../data/reports_providers.dart';
 import '../report_widgets.dart';
 
 /// Student Payments (student-payments): one student's fee position and full
-/// payment history for a semester. Preview only (no PDF endpoint).
+/// payment history for a term. Preview only (no PDF endpoint).
 /// Needs studentId + semesterId + gradeId (the student's class).
 class StudentPaymentsReport extends ConsumerStatefulWidget {
   const StudentPaymentsReport({super.key});
@@ -102,8 +102,8 @@ class _StudentPaymentsReportState
                 onChanged: (v) => setState(() => _studentId = v),
               ),
               ReportPicker(
-                label: 'Semester',
-                hint: 'Select semester',
+                label: 'Term',
+                hint: 'Select term',
                 value: _semesterId,
                 width: 220,
                 items: semestersAsync.maybeWhen(
@@ -138,7 +138,7 @@ class _StudentPaymentsReportState
     final result = _result;
     if (result == null) {
       return ReportStates.prompt('Choose a student',
-          'Pick class, student and semester, then Run.');
+          'Pick class, student and term, then Run.');
     }
     return result.when(
       loading: () => ReportStates.loading(c),
@@ -146,7 +146,7 @@ class _StudentPaymentsReportState
       data: (report) {
         if (report == null) {
           return ReportStates.empty(
-              'No record', 'No fee record for this student and semester.');
+              'No record', 'No fee record for this student and term.');
         }
         return _report(c, report);
       },
