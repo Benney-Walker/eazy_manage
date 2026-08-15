@@ -24,6 +24,8 @@ abstract final class ApiConfig {
 abstract final class Endpoints {
   // ---- Auth ----
   static const String staffLogin = '${ApiConfig.auth}${ApiConfig.v1}/staff-login';
+  static const String refreshToken =
+      '${ApiConfig.auth}${ApiConfig.v1}/refresh-token';
 
   // ---- Dashboard counts (plain-number response bodies) ----
   static const String totalStudents =
@@ -163,5 +165,29 @@ abstract final class Endpoints {
   static String timelyLogs(String fromDate, String toDate) =>
       '${ApiConfig.admin}${ApiConfig.v1}/get-timely-logs'
           '?fromDate=$fromDate&toDate=$toDate';
+
+  // ---- Reports: previews (JSON) ----
+  static String viewClassResults(String levelId, String semesterId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/view-class-results?levelId=$levelId&semesterId=$semesterId';
+  static String viewMasterSheet(String levelId, String semesterId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/view-master-sheet?levelId=$levelId&semesterId=$semesterId';
+  static String viewSba(String levelId, String subjectId, String semesterId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/view-sba?classId=$levelId&subjectId=$subjectId&semesterId=$semesterId';
+  static String reportCard(String studentId, String semesterId) =>
+      '${ApiConfig.staff}${ApiConfig.v1}/report-card?studentId=$studentId&semesterId=$semesterId';
+  static String gradeFeesReport(String levelId, String semesterId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/fetch-grade-fees-report/$levelId/$semesterId';
+  static String studentFeesReport(String studentId, String semesterId, String gradeId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/search-fees-report?studentId=$studentId&semesterId=$semesterId&gradeId=$gradeId';
+
+  // ---- Reports: PDF generation (bytes) ----
+  static String generateClassReport(String levelId, String semesterId) =>
+      '${ApiConfig.admin}${ApiConfig.v2}/generate-class-report?levelId=$levelId&semesterId=$semesterId';
+  static String generateMasterSheet(String levelId, String semesterId) =>
+      '${ApiConfig.admin}${ApiConfig.v2}/generate-master-sheet?levelId=$levelId&semesterId=$semesterId';
+  static String generateSbaReport(String levelId, String subjectId, String semesterId) =>
+      '${ApiConfig.admin}${ApiConfig.v2}/generate-sba-report?levelId=$levelId&subjectId=$subjectId&semesterId=$semesterId';
+  static String generateReportCard(String studentId, String semesterId) =>
+      '${ApiConfig.student}${ApiConfig.v3}/generate-report-card?studentId=$studentId&semesterId=$semesterId';
 }
 
