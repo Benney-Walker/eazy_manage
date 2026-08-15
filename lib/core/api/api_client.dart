@@ -16,11 +16,7 @@ class ApiException implements Exception {
   final ApiFailureKind kind;
   final int? statusCode;
 
-  const ApiException(
-      this.message,
-      this.kind,
-      {this.statusCode}
-      );
+  const ApiException(this.message, this.kind, {this.statusCode});
 
   bool get isSessionExpired => kind == ApiFailureKind.unauthorized;
 
@@ -30,22 +26,35 @@ class ApiException implements Exception {
 
 typedef OnUnauthorized = void Function();
 
+typedef OnTokenRefreshed = void Function(String newAccessToken);
+
 class ApiClient {
   final Dio _dio;
   final TokenStorage _storage;
   OnUnauthorized? onUnauthorized;
+  OnTokenRefreshed? onTokenRefreshed;
 
   String? _tokenInMemory;
   String? _staffIdInMemory;
+  String? _refreshTokenInMemory;
 
-  void setCredentials({required String token, required String staffId}) {
+  Future<String?>? _refreshInFlight;
+
+  void setCredentials({
+    required String token,
+    required String staffId,
+    String? refreshToken,
+  }) {
     _tokenInMemory = token;
     _staffIdInMemory = staffId;
+    if (refreshToken != null) _refreshTokenInMemory = refreshToken;
   }
 
   void clearCredentials() {
     _tokenInMemory = null;
     _staffIdInMemory = null;
+    _refreshTokenInMemory = null;
+    _refreshInFlight = null;
   }
 
   ApiClient({required TokenStorage storage, Dio? dio})
@@ -101,6 +110,22 @@ class ApiClient {
         triggerLogoutOn401: triggerLogoutOn401);
   }
 
+  Future<List<int>> getBytes(String path,
+      {Map<String, dynamic>? query, bool triggerLogoutOn401 = true}) async {
+    final res = await _send(
+          () => _dio.get(
+        path,
+        queryParameters: query,
+        options: Options(responseType: ResponseType.bytes),
+      ),
+      triggerLogoutOn401: triggerLogoutOn401,
+    );
+    final data = res.data;
+    if (data is List<int>) return data;
+    if (data is List) return data.cast<int>();
+    return const [];
+  }
+
   Future<Response<dynamic>> post(String path,
       {Object? body, bool triggerLogoutOn401 = true}) {
     return _send(() => _dio.post(path, data: body),
@@ -124,12 +149,15 @@ class ApiClient {
   Future<Response<dynamic>> _send(
       Future<Response<dynamic>> Function() run, {
         bool triggerLogoutOn401 = true,
+        bool allowRefresh = true,
       }) async {
     late final Response<dynamic> res;
     try {
       res = await run();
     } on DioException catch (e) {
-
+      // Our own interceptor rejects tokenless authenticated calls with
+      // type.cancel — surface that as an auth error, but do NOT fire the
+      // global logout from a read (the caller decides via triggerLogoutOn401).
       if (e.type == DioExceptionType.cancel) {
         throw const ApiException(
           'Not authenticated. Please sign in again.',
@@ -159,6 +187,18 @@ class ApiClient {
     final message = _extractMessage(res.data) ?? _defaultMessageFor(code);
 
     if (code == 401) {
+      // The access token is short-lived (15 min). Before treating a 401 as a
+      // dead session, try to mint a new access token with the refresh token
+      // and replay the original request once. Only if that fails do we log out.
+      if (allowRefresh) {
+        final newToken = await _tryRefresh();
+        if (newToken != null) {
+          // Retry the original request once, with refresh disabled to avoid
+          // loops if it still 401s.
+          return _send(run,
+              triggerLogoutOn401: triggerLogoutOn401, allowRefresh: false);
+        }
+      }
       if (triggerLogoutOn401) onUnauthorized?.call();
       throw ApiException(message, ApiFailureKind.unauthorized, statusCode: code);
     }
@@ -169,6 +209,41 @@ class ApiClient {
       throw ApiException(message, ApiFailureKind.server, statusCode: code);
     }
     throw ApiException(message, ApiFailureKind.unknown, statusCode: code);
+  }
+
+  Future<String?> _tryRefresh() {
+    return _refreshInFlight ??= _doRefresh().whenComplete(() {
+      _refreshInFlight = null;
+    });
+  }
+
+  Future<String?> _doRefresh() async {
+    final refreshToken = _refreshTokenInMemory ?? await _storage.refreshToken;
+    if (refreshToken == null || refreshToken.isEmpty) return null;
+
+    try {
+      // The refresh call is itself an /auth/ call, so the request interceptor
+      // won't attach the (expired) access token to it.
+      final res = await _dio.post(
+        Endpoints.refreshToken,
+        data: {'refreshToken': refreshToken},
+      );
+      final code = res.statusCode ?? 0;
+      if (code < 200 || code >= 300) return null;
+
+      final data = res.data;
+      final newToken =
+      (data is Map && data['authToken'] is String) ? data['authToken'] as String : null;
+      if (newToken == null || newToken.isEmpty) return null;
+
+      // Update in-memory + let the app persist it.
+      _tokenInMemory = newToken;
+      await _storage.updateAccessToken(newToken);
+      onTokenRefreshed?.call(newToken);
+      return newToken;
+    } on DioException {
+      return null;
+    }
   }
 
   /// Backend error bodies look like `{"message": "...", "status": 401, ...}`.

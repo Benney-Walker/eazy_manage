@@ -78,8 +78,11 @@ class AuthController extends Notifier<AuthState> {
     final storage = ref.read(tokenStorageProvider);
     _repo = AuthRepository(_api, storage);
 
-    // Any 401 → treat as an expired session.
+    // A 401 that survives a token refresh → treat as an expired session.
     _api.onUnauthorized = _onUnauthorized;
+    // After a silent refresh, the repository persists the new access token;
+    // nothing else in state needs to change (identity/roles are unchanged).
+    _api.onTokenRefreshed = (_) {};
 
     // Kick off restore; state starts unknown and resolves asynchronously.
     _restore();
@@ -92,7 +95,11 @@ class AuthController extends Notifier<AuthState> {
       state = const AuthState.unauthenticated();
       return;
     }
-    _api.setCredentials(token: stored.token, staffId: stored.staffId);
+    _api.setCredentials(
+      token: stored.token,
+      staffId: stored.staffId,
+      refreshToken: stored.refreshToken,
+    );
     state = AuthState.authenticated(_sessionFromStored(stored));
   }
 
@@ -105,10 +112,14 @@ class AuthController extends Notifier<AuthState> {
     try {
       final res = await _repo.login(staffId: staffId, password: password);
 
-      // Prime the client with the fresh token immediately so the first
+      // Prime the client with the fresh tokens immediately so the first
       // authenticated call (the dashboard) carries the header without racing
-      // secure storage.
-      _api.setCredentials(token: res.authToken, staffId: res.staffId);
+      // secure storage, and so a mid-session refresh has the refresh token.
+      _api.setCredentials(
+        token: res.authToken,
+        staffId: res.staffId,
+        refreshToken: res.refreshToken,
+      );
 
       final roles = res.roles.map(AppRole.fromBackend).toList();
       // Re-read the persisted active role to mirror repo's selection.

@@ -11,14 +11,17 @@ class TokenStorage {
   );
 
   static const _kToken = 'auth_token';
+  static const _kRefreshToken = 'refresh_token';
   static const _kStaffId = 'staff_id';
   static const _kStaffName = 'staff_name';
   static const _kInstitution = 'institution_name';
   static const _kRoles = 'roles_csv';
   static const _kActiveRole = 'active_role';
+  static const _kThemeMode = 'theme_mode';
 
   Future<void> saveSession({
     required String token,
+    required String refreshToken,
     required String staffId,
     required String staffName,
     required String institutionName,
@@ -27,6 +30,7 @@ class TokenStorage {
   }) async {
     await Future.wait([
       _storage.write(key: _kToken, value: token),
+      _storage.write(key: _kRefreshToken, value: refreshToken),
       _storage.write(key: _kStaffId, value: staffId),
       _storage.write(key: _kStaffName, value: staffName),
       _storage.write(key: _kInstitution, value: institutionName),
@@ -35,14 +39,26 @@ class TokenStorage {
     ]);
   }
 
+  /// Replace just the access token (after a successful refresh) without
+  /// disturbing the rest of the stored session.
+  Future<void> updateAccessToken(String token) =>
+      _storage.write(key: _kToken, value: token);
+
   Future<void> setActiveRole(String role) =>
       _storage.write(key: _kActiveRole, value: role);
 
   Future<String?> get token => _storage.read(key: _kToken);
+  Future<String?> get refreshToken => _storage.read(key: _kRefreshToken);
   Future<String?> get staffId => _storage.read(key: _kStaffId);
   Future<String?> get staffName => _storage.read(key: _kStaffName);
   Future<String?> get institutionName => _storage.read(key: _kInstitution);
   Future<String?> get activeRole => _storage.read(key: _kActiveRole);
+
+  // ---- Theme preference (persisted separately from the session so it
+  // survives sign-out) ----
+  Future<void> setThemeMode(String mode) =>
+      _storage.write(key: _kThemeMode, value: mode);
+  Future<String?> get themeMode => _storage.read(key: _kThemeMode);
 
   Future<List<String>> get roles async {
     final csv = await _storage.read(key: _kRoles);
@@ -57,6 +73,7 @@ class TokenStorage {
     if (t == null || t.isEmpty || id == null || id.isEmpty) return null;
     return StoredSession(
       token: t,
+      refreshToken: await refreshToken ?? '',
       staffId: id,
       staffName: await staffName ?? '',
       institutionName: await institutionName ?? '',
@@ -65,9 +82,12 @@ class TokenStorage {
     );
   }
 
+  /// Clear the session (sign-out). The theme preference is intentionally NOT
+  /// cleared — it's a device preference that should outlive sign-out.
   Future<void> clear() async {
     await Future.wait([
       _storage.delete(key: _kToken),
+      _storage.delete(key: _kRefreshToken),
       _storage.delete(key: _kStaffId),
       _storage.delete(key: _kStaffName),
       _storage.delete(key: _kInstitution),
@@ -80,6 +100,7 @@ class TokenStorage {
 /// A rehydrated session read back from secure storage on launch.
 class StoredSession {
   final String token;
+  final String refreshToken;
   final String staffId;
   final String staffName;
   final String institutionName;
@@ -88,6 +109,7 @@ class StoredSession {
 
   const StoredSession({
     required this.token,
+    required this.refreshToken,
     required this.staffId,
     required this.staffName,
     required this.institutionName,

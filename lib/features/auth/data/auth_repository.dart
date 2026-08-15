@@ -21,9 +21,12 @@ class AuthRepository {
     required String staffId,
     required String password,
   }) async {
+    // The login screen surfaces auth failures inline, so a 401 here (bad
+    // credentials) must not trip the global logout hook.
     final res = await _api.post(
       Endpoints.staffLogin,
       body: {'staffId': staffId, 'password': password},
+      triggerLogoutOn401: false,
     );
 
     final data = res.data;
@@ -44,13 +47,14 @@ class AuthRepository {
 
     final previous = await _storage.activeRole;
     final active = (previous != null &&
-            previous.isNotEmpty &&
-            login.roles.contains(previous))
+        previous.isNotEmpty &&
+        login.roles.contains(previous))
         ? previous
         : login.roles.first;
 
     await _storage.saveSession(
       token: login.authToken,
+      refreshToken: login.refreshToken,
       staffId: login.staffId,
       staffName: login.staffName,
       institutionName: login.institutionName,

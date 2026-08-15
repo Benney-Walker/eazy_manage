@@ -6,6 +6,7 @@ class LoginResponse {
   final List<String> roles;
   final String institutionName;
   final String authToken;
+  final String refreshToken;
 
   const LoginResponse({
     required this.staffId,
@@ -13,6 +14,7 @@ class LoginResponse {
     required this.roles,
     required this.institutionName,
     required this.authToken,
+    required this.refreshToken,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class LoginResponse {
           const [],
       institutionName: (json['institutionName'] ?? '') as String,
       authToken: (json['authToken'] ?? '') as String,
+      refreshToken: (json['refreshToken'] ?? '') as String,
     );
   }
 }
