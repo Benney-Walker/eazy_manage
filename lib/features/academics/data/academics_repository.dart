@@ -1,7 +1,6 @@
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_config.dart';
 import 'academics_models.dart';
-import 'academics_models.dart';
 
 /// All Academics data access (Phase 6a). Endpoints mirror the JavaFX
 /// `AcademicsService`.
@@ -28,7 +27,7 @@ class AcademicsRepository {
     final res = await _api.get(Endpoints.searchSemester(id), triggerLogoutOn401: false);
     final data = res.data;
     if (data is Map<String, dynamic>) return SemesterDetail.fromJson(data);
-    throw const ApiException('Could not read semester.', ApiFailureKind.unknown);
+    throw const ApiException('Could not read term.', ApiFailureKind.unknown);
   }
 
   Future<void> addSemester(NewSemesterRequest req) async {

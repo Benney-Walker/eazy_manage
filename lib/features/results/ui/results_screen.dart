@@ -14,7 +14,7 @@ import '../../students/data/student_providers.dart';
 import '../data/results_models.dart';
 import '../data/results_providers.dart';
 
-/// Enter Scores: a spreadsheet-style grid. Pick class → subject → semester,
+/// Enter Scores: a spreadsheet-style grid. Pick class → subject → term,
 /// then type the five component scores per student. Class score, exam score,
 /// and total compute live. Saving is a local-first batch write.
 class ResultsScreen extends ConsumerStatefulWidget {
@@ -80,9 +80,9 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
         '';
     try {
       await ref.read(resultsRepositoryProvider).saveScores(
-            subjectName: subjectName,
-            rows: _draft,
-          );
+        subjectName: subjectName,
+        rows: _draft,
+      );
       if (!mounted) return;
       setState(() {
         _saving = false;
@@ -163,7 +163,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
               error: (_, __) => _hintBox(c, 'Classes unavailable'),
               data: (classes) {
                 final valid =
-                    classes.any((cl) => cl.levelId == levelId) ? levelId : null;
+                classes.any((cl) => cl.levelId == levelId) ? levelId : null;
                 return AcademicsDropdown<String>(
                   label: 'Class',
                   value: valid,
@@ -222,16 +222,16 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
           SizedBox(
             width: 220,
             child: semestersAsync.when(
-              loading: () => _hintBox(c, 'Loading semesters…'),
-              error: (_, __) => _hintBox(c, 'Semesters unavailable'),
+              loading: () => _hintBox(c, 'Loading terms…'),
+              error: (_, __) => _hintBox(c, 'Terms unavailable'),
               data: (semesters) {
                 final valid = semesters.any((s) => s.semesterId == semesterId)
                     ? semesterId
                     : null;
                 return AcademicsDropdown<String>(
-                  label: 'Semester',
+                  label: 'Term',
                   value: valid,
-                  hint: 'Select semester',
+                  hint: 'Select term',
                   items: [
                     for (final s in semesters)
                       DropdownMenuItem(
@@ -278,7 +278,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
             border: Border.all(color: c.inputBorder, width: AppStroke.hairline),
           ),
           child:
-              Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
+          Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
         ),
       ],
     );
@@ -290,7 +290,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     if (!ready) {
       return const AcademicsEmpty(
         icon: Icons.grid_on_rounded,
-        title: 'Choose class, subject and semester',
+        title: 'Choose class, subject and term',
         subtitle: 'Pick all three above to load the score sheet.',
       );
     }
@@ -313,7 +313,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
           return const AcademicsEmpty(
             icon: Icons.person_off_rounded,
             title: 'No students',
-            subtitle: 'This subject has no students for the chosen semester.',
+            subtitle: 'This subject has no students for the chosen term.',
           );
         }
         // Rows are loaded into the editable draft via the ref.listen in build.
@@ -385,16 +385,16 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
 
   Widget _headerRow(AppColors c) {
     Widget h(String text, double w, {bool computed = false}) => SizedBox(
-          width: w,
-          child: Text(
-            text,
-            textAlign: computed ? TextAlign.center : TextAlign.left,
-            style: AppTypography.caption.copyWith(
-              color: computed ? c.brand : c.textSecondary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        );
+      width: w,
+      child: Text(
+        text,
+        textAlign: computed ? TextAlign.center : TextAlign.left,
+        style: AppTypography.caption.copyWith(
+          color: computed ? c.brand : c.textSecondary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
 
     return Container(
       color: c.surfaceAlt,
@@ -449,12 +449,12 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
               children: [
                 Text(row.studentName,
                     style:
-                        AppTypography.body.copyWith(color: c.textPrimary),
+                    AppTypography.body.copyWith(color: c.textPrimary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
                 Text(row.studentId,
                     style:
-                        AppTypography.caption.copyWith(color: c.textMuted),
+                    AppTypography.caption.copyWith(color: c.textMuted),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
               ],

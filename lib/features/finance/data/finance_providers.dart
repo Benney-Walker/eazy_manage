@@ -12,9 +12,6 @@ final financeRepositoryProvider = Provider<FinanceRepository>((ref) {
   );
 });
 
-/// Shared Finance context — the class + semester the accountant is working in.
-/// Both the Fees Setup and Record Payments tabs read this so switching context
-/// in one place updates both.
 final financeLevelIdProvider = StateProvider<String?>((ref) => null);
 final financeSemesterIdProvider = StateProvider<String?>((ref) => null);
 

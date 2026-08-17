@@ -27,7 +27,7 @@ class RecordPaymentsTab extends ConsumerWidget {
     if (!ready) {
       return const AcademicsEmpty(
         icon: Icons.filter_alt_rounded,
-        title: 'Choose a class and semester',
+        title: 'Choose a class and term',
         subtitle: 'Pick both above, then choose a student to record payments.',
       );
     }

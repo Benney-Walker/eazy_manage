@@ -8,13 +8,9 @@ import 'package:path_provider/path_provider.dart';
 /// Well-known cache keys for reference data that barely changes.
 class ReferenceCacheKeys {
   static const classes = 'classes';
-  static const terms = 'terms';
+  static const semesters = 'semesters';
 }
 
-/// How long cached reference data is considered fresh. Classes and terms change
-/// rarely (roughly once a term/year), so a long TTL keeps launches fast and
-/// offline-friendly while still picking up admin changes within a day. Adjust
-/// here if you want faster propagation.
 const Duration kReferenceCacheTtl = Duration(hours: 12);
 
 /// One cached payload plus when it was written.
@@ -27,9 +23,6 @@ class CacheEnvelope {
       DateTime.now().millisecondsSinceEpoch - cachedAtMs < ttl.inMilliseconds;
 }
 
-/// A tiny durable cache for reference lists, stored as JSON files in the app
-/// support directory so it survives restarts. Best-effort: any IO error is
-/// swallowed and treated as "no cache" rather than surfacing to the UI.
 class ReferenceCache {
   Directory? _dirCache;
 

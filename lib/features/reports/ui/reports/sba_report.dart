@@ -125,7 +125,7 @@ class _SbaReportState extends ConsumerState<SbaReport> {
               DownloadPdfButton(
                 path: _ready
                     ? Endpoints.generateSbaReport(
-                        _levelId!, _subjectId!, _semesterId!)
+                    _levelId!, _subjectId!, _semesterId!)
                     : null,
                 suggestedName: 'SBA Report',
               ),
@@ -197,11 +197,11 @@ class _SbaReportState extends ConsumerState<SbaReport> {
 
   Widget _row(AppColors c, SbaRow r) {
     Widget num(String t, double w) => SizedBox(
-          width: w,
-          child: Text(t.isEmpty ? '—' : t,
-              textAlign: TextAlign.center,
-              style: AppTypography.body.copyWith(color: c.textPrimary)),
-        );
+      width: w,
+      child: Text(t.isEmpty ? '—' : t,
+          textAlign: TextAlign.center,
+          style: AppTypography.body.copyWith(color: c.textPrimary)),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(

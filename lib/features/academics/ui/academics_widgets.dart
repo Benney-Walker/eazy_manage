@@ -4,10 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
 
-/// Shared building blocks for the Academic Setup tabs, so Semesters, Subjects,
-/// and Grading stay visually consistent without repeating layout code.
 
-/// Centered empty / error state.
 class AcademicsEmpty extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -141,7 +138,7 @@ class AcademicsRow extends StatelessWidget {
                     Text(
                       title,
                       style:
-                          AppTypography.bodyStrong.copyWith(color: c.textPrimary),
+                      AppTypography.bodyStrong.copyWith(color: c.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -377,7 +374,7 @@ class AcademicsInlineError extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child:
-                Text(message, style: AppTypography.caption.copyWith(color: c.danger)),
+            Text(message, style: AppTypography.caption.copyWith(color: c.danger)),
           ),
         ],
       ),

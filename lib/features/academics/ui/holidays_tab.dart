@@ -8,7 +8,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_button.dart';
 import '../data/academics_models.dart';
-import '../data/academics_models.dart';
 import '../data/academics_providers.dart';
 import 'academics_widgets.dart';
 
@@ -264,27 +263,27 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
           const SizedBox(height: AppSpacing.lg),
           semestersAsync.when(
             loading: () => AcademicsDropdown<String>(
-              label: 'Semester',
+              label: 'Terms',
               value: null,
               items: const [],
               onChanged: (_) {},
-              hint: 'Loading semesters…',
+              hint: 'Loading terms',
             ),
             error: (_, __) => AcademicsDropdown<String>(
-              label: 'Semester',
+              label: 'Term',
               value: null,
               items: const [],
               onChanged: (_) {},
-              hint: 'Semesters unavailable',
+              hint: 'Terms unavailable',
             ),
             data: (semesters) {
               final valid = semesters.any((s) => s.semesterId == _semesterId)
                   ? _semesterId
                   : null;
               return AcademicsDropdown<String>(
-                label: 'Semester',
+                label: 'Term',
                 value: valid,
-                hint: 'Select semester',
+                hint: 'Select term',
                 items: [
                   for (final s in semesters)
                     DropdownMenuItem(

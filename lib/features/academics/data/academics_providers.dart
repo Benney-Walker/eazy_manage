@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_providers.dart';
-import 'academics_models.dart';
+import '../../../core/cache/reference_cache.dart';
+import '../../../core/connectivity/connectivity_providers.dart';
 import 'academics_models.dart';
 import 'academics_repository.dart';
 
@@ -12,9 +13,22 @@ final academicsRepositoryProvider = Provider<AcademicsRepository>((ref) {
 // ---- Semesters ------------------------------------------------------------
 
 final semestersProvider =
-FutureProvider.autoDispose<List<SemesterSummary>>((ref) async {
-  return ref.watch(academicsRepositoryProvider).loadSemesters();
+FutureProvider<List<SemesterSummary>>((ref) async {
+  return readThroughCache<SemesterSummary>(
+    cache: ref.read(referenceCacheProvider),
+    isOnline: ref.read(isOnlineProvider),
+    key: ReferenceCacheKeys.semesters,
+    ttl: kReferenceCacheTtl,
+    fetch: () => ref.read(academicsRepositoryProvider).loadSemesters(),
+    fromJson: SemesterSummary.fromJson,
+    toJson: (s) => s.toJson(),
+  );
 });
+
+Future<void> refreshSemesters(WidgetRef ref) async {
+  await ref.read(referenceCacheProvider).bust(ReferenceCacheKeys.semesters);
+  ref.invalidate(semestersProvider);
+}
 
 final semesterDetailProvider = FutureProvider.autoDispose
     .family<SemesterDetail, String>((ref, id) async {

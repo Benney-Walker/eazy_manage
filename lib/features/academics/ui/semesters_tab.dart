@@ -30,18 +30,18 @@ class SemestersTab extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Semesters',
+                  'Terms',
                   style: AppTypography.subtitle.copyWith(color: c.textPrimary),
                 ),
               ),
               AppButton.secondary(
                 label: 'Refresh',
                 icon: Icons.refresh_rounded,
-                onPressed: () => ref.invalidate(semestersProvider),
+                onPressed: () => refreshSemesters(ref),
               ),
               const SizedBox(width: AppSpacing.sm),
               AppButton.primary(
-                label: 'Add semester',
+                label: 'Add term',
                 icon: Icons.add_rounded,
                 onPressed: () => _openEditor(context, ref, null),
               ),
@@ -54,20 +54,20 @@ class SemestersTab extends ConsumerWidget {
                   Center(child: CircularProgressIndicator(color: c.brand)),
               error: (e, _) => AcademicsEmpty(
                 icon: Icons.cloud_off_rounded,
-                title: 'Couldn\'t load semesters',
+                title: 'Couldn\'t load terms',
                 subtitle: e.toString().replaceFirst('ApiException: ', ''),
                 action: AppButton.secondary(
                   label: 'Retry',
                   icon: Icons.refresh_rounded,
-                  onPressed: () => ref.invalidate(semestersProvider),
+                  onPressed: () => refreshSemesters(ref),
                 ),
               ),
               data: (semesters) {
                 if (semesters.isEmpty) {
                   return const AcademicsEmpty(
                     icon: Icons.calendar_month_rounded,
-                    title: 'No semesters yet',
-                    subtitle: 'Add a semester to define your academic terms.',
+                    title: 'No terms yet',
+                    subtitle: 'Add a term to define your academic terms.',
                   );
                 }
                 return AcademicsListCard(
@@ -151,7 +151,7 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
     } on ApiException catch (e) {
       _error = e.message;
     } catch (_) {
-      _error = 'Could not load semester.';
+      _error = 'Could not load terms.';
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -159,7 +159,7 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
 
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) {
-      setState(() => _error = 'Semester name is required.');
+      setState(() => _error = 'Term name is required.');
       return;
     }
     if (_year.text.trim().isEmpty) {
@@ -199,10 +199,11 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
         ));
       }
       if (!mounted) return;
-      ref.invalidate(semestersProvider);
+      await refreshSemesters(ref);
+      if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Semester updated.' : 'Semester added.')),
+        SnackBar(content: Text(_isEdit ? 'Term updated.' : 'Term added.')),
       );
     } on ApiException catch (e) {
       setState(() {
@@ -221,7 +222,7 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     return AcademicsSheet(
-      title: _isEdit ? 'Edit semester' : 'Add semester',
+      title: _isEdit ? 'Edit term' : 'Add term',
       icon: Icons.calendar_month_rounded,
       child: _loading
           ? const SizedBox(
@@ -234,7 +235,7 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
                   Expanded(
                     flex: 2,
                     child: AppTextField(
-                      label: 'Semester name',
+                      label: 'Term name',
                       hint: 'e.g. First Term',
                       controller: _name,
                     ),
@@ -280,7 +281,7 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   AppButton.primary(
-                    label: _isEdit ? 'Save changes' : 'Add semester',
+                    label: _isEdit ? 'Save changes' : 'Add term',
                     busy: _saving,
                     onPressed: _save,
                   ),

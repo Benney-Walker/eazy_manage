@@ -97,7 +97,7 @@ abstract final class Endpoints {
   static const String newGradingCriteria =
       '${ApiConfig.admin}${ApiConfig.v1}/new-grading-criteria';
 
-  // ---- Academics: Classes (6b) ----
+  // ---- Academics: Classes ----
   static String findClassInfo(String levelId) =>
       '${ApiConfig.admin}${ApiConfig.v1}/find-class-info/$levelId';
   static String addNewClass(String gradeName, String instructorId) =>
@@ -106,7 +106,7 @@ abstract final class Endpoints {
   static const String updateClassInfo =
       '${ApiConfig.admin}${ApiConfig.v1}/update-class-info';
 
-  // ---- Academics: Holidays (6b) ----
+  // ---- Academics: Holidays ----
   static const String loadHolidays =
       '${ApiConfig.admin}${ApiConfig.v1}/load-holidays';
   static const String addHoliday =

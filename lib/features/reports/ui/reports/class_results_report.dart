@@ -160,12 +160,12 @@ class _ClassResultsReportState extends ConsumerState<ClassResultsReport> {
 
   Widget _row(AppColors c, ClassResultRow r) {
     Widget cell(String t, double w, {bool strong = false}) => SizedBox(
-          width: w,
-          child: Text(t.isEmpty ? '—' : t,
-              textAlign: TextAlign.right,
-              style: (strong ? AppTypography.bodyStrong : AppTypography.body)
-                  .copyWith(color: c.textPrimary)),
-        );
+      width: w,
+      child: Text(t.isEmpty ? '—' : t,
+          textAlign: TextAlign.right,
+          style: (strong ? AppTypography.bodyStrong : AppTypography.body)
+              .copyWith(color: c.textPrimary)),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(

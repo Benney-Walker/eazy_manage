@@ -28,6 +28,29 @@ typedef OnUnauthorized = void Function();
 
 typedef OnTokenRefreshed = void Function(String newAccessToken);
 
+/// The result of attempting to renew the access token with the refresh token.
+enum TokenRefreshOutcome {
+  /// A new access token was obtained (and persisted).
+  refreshed,
+
+  /// There is no refresh token stored — nothing to renew with.
+  noRefreshToken,
+
+  /// The server rejected the refresh token (401) — the session is truly over.
+  rejected,
+
+  /// A transient failure (offline, timeout, 5xx) — keep the session and retry.
+  unavailable,
+}
+
+class TokenRefreshResult {
+  final TokenRefreshOutcome outcome;
+  final String? token;
+  const TokenRefreshResult(this.outcome, [this.token]);
+
+  bool get ok => outcome == TokenRefreshOutcome.refreshed;
+}
+
 class ApiClient {
   final Dio _dio;
   final TokenStorage _storage;
@@ -38,7 +61,7 @@ class ApiClient {
   String? _staffIdInMemory;
   String? _refreshTokenInMemory;
 
-  Future<String?>? _refreshInFlight;
+  Future<TokenRefreshResult>? _refreshInFlight;
 
   void setCredentials({
     required String token,
@@ -155,9 +178,7 @@ class ApiClient {
     try {
       res = await run();
     } on DioException catch (e) {
-      // Our own interceptor rejects tokenless authenticated calls with
-      // type.cancel — surface that as an auth error, but do NOT fire the
-      // global logout from a read (the caller decides via triggerLogoutOn401).
+
       if (e.type == DioExceptionType.cancel) {
         throw const ApiException(
           'Not authenticated. Please sign in again.',
@@ -187,17 +208,21 @@ class ApiClient {
     final message = _extractMessage(res.data) ?? _defaultMessageFor(code);
 
     if (code == 401) {
-      // The access token is short-lived (15 min). Before treating a 401 as a
-      // dead session, try to mint a new access token with the refresh token
-      // and replay the original request once. Only if that fails do we log out.
+
       if (allowRefresh) {
-        final newToken = await _tryRefresh();
-        if (newToken != null) {
+        final refresh = await _tryRefresh();
+        if (refresh.ok) {
           // Retry the original request once, with refresh disabled to avoid
           // loops if it still 401s.
           return _send(run,
               triggerLogoutOn401: triggerLogoutOn401, allowRefresh: false);
         }
+
+        final hardFailure = refresh.outcome == TokenRefreshOutcome.rejected ||
+            refresh.outcome == TokenRefreshOutcome.noRefreshToken;
+        if (triggerLogoutOn401 && hardFailure) onUnauthorized?.call();
+        throw ApiException(message, ApiFailureKind.unauthorized,
+            statusCode: code);
       }
       if (triggerLogoutOn401) onUnauthorized?.call();
       throw ApiException(message, ApiFailureKind.unauthorized, statusCode: code);
@@ -211,15 +236,19 @@ class ApiClient {
     throw ApiException(message, ApiFailureKind.unknown, statusCode: code);
   }
 
-  Future<String?> _tryRefresh() {
+  Future<TokenRefreshResult> refreshNow() => _tryRefresh();
+
+  Future<TokenRefreshResult> _tryRefresh() {
     return _refreshInFlight ??= _doRefresh().whenComplete(() {
       _refreshInFlight = null;
     });
   }
 
-  Future<String?> _doRefresh() async {
+  Future<TokenRefreshResult> _doRefresh() async {
     final refreshToken = _refreshTokenInMemory ?? await _storage.refreshToken;
-    if (refreshToken == null || refreshToken.isEmpty) return null;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      return const TokenRefreshResult(TokenRefreshOutcome.noRefreshToken);
+    }
 
     try {
       // The refresh call is itself an /auth/ call, so the request interceptor
@@ -229,20 +258,28 @@ class ApiClient {
         data: {'refreshToken': refreshToken},
       );
       final code = res.statusCode ?? 0;
-      if (code < 200 || code >= 300) return null;
+      if (code == 401) {
+        return const TokenRefreshResult(TokenRefreshOutcome.rejected);
+      }
+      // Any other non-2xx (5xx, etc.) is transient — don't kill the session.
+      if (code < 200 || code >= 300) {
+        return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
+      }
 
       final data = res.data;
       final newToken =
       (data is Map && data['authToken'] is String) ? data['authToken'] as String : null;
-      if (newToken == null || newToken.isEmpty) return null;
+      if (newToken == null || newToken.isEmpty) {
+        return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
+      }
 
       // Update in-memory + let the app persist it.
       _tokenInMemory = newToken;
       await _storage.updateAccessToken(newToken);
       onTokenRefreshed?.call(newToken);
-      return newToken;
+      return TokenRefreshResult(TokenRefreshOutcome.refreshed, newToken);
     } on DioException {
-      return null;
+      return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
     }
   }
 

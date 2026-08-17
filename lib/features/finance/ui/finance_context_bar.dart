@@ -65,7 +65,7 @@ class FinanceContextBar extends ConsumerWidget {
           _dropdown<String, SemesterSummary>(
             c,
             width: 240,
-            hint: 'Semester',
+            hint: 'Term',
             value: semesterId,
             async: semestersAsync,
             itemsBuilder: (semesters) => [
@@ -86,12 +86,7 @@ class FinanceContextBar extends ConsumerWidget {
     );
   }
 
-  /// A small async-aware dropdown that shows a loading/error hint until its
-  /// data is ready, and guards against a stale value not in the list.
-  ///
-  /// Generic over both the dropdown value type [T] and the list item type [E]
-  /// so it accepts `AsyncValue<List<ClassOption>>`, `AsyncValue<List<...>>`,
-  /// etc. without running into Dart's invariant generics.
+
   Widget _dropdown<T, E>(
     AppColors c, {
     required double width,

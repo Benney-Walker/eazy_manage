@@ -21,6 +21,11 @@ class ClassOption {
     levelName: (j['levelName'] ?? '').toString(),
   );
 
+  Map<String, dynamic> toJson() => {
+    'levelId': levelId,
+    'levelName': levelName,
+  };
+
   @override
   bool operator ==(Object other) =>
       other is ClassOption && other.levelId == levelId;

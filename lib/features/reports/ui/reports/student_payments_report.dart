@@ -192,11 +192,11 @@ class _StudentPaymentsReportState
           child: r.paymentHistory.isEmpty
               ? ReportStates.empty('No payments', 'No payments recorded yet.')
               : ReportTable(
-                  header: _historyHeader(c),
-                  itemCount: r.paymentHistory.length,
-                  itemBuilder: (context, i) =>
-                      _historyRow(c, r.paymentHistory[i]),
-                ),
+            header: _historyHeader(c),
+            itemCount: r.paymentHistory.length,
+            itemBuilder: (context, i) =>
+                _historyRow(c, r.paymentHistory[i]),
+          ),
         ),
       ],
     );

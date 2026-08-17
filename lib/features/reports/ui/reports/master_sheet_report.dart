@@ -181,14 +181,14 @@ class _MasterSheetReportState extends ConsumerState<MasterSheetReport> {
 
   Widget _header(AppColors c, MasterSheet sheet) {
     Widget h(String t, double w, {TextAlign a = TextAlign.center}) => SizedBox(
-          width: w,
-          child: Text(t,
-              textAlign: a,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.caption.copyWith(
-                  color: c.textSecondary, fontWeight: FontWeight.w700)),
-        );
+      width: w,
+      child: Text(t,
+          textAlign: a,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.caption.copyWith(
+              color: c.textSecondary, fontWeight: FontWeight.w700)),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -209,12 +209,12 @@ class _MasterSheetReportState extends ConsumerState<MasterSheetReport> {
         : v.toStringAsFixed(1);
 
     Widget num(String t, double w, {bool strong = false}) => SizedBox(
-          width: w,
-          child: Text(t,
-              textAlign: TextAlign.center,
-              style: (strong ? AppTypography.bodyStrong : AppTypography.body)
-                  .copyWith(color: c.textPrimary)),
-        );
+      width: w,
+      child: Text(t,
+          textAlign: TextAlign.center,
+          style: (strong ? AppTypography.bodyStrong : AppTypography.body)
+              .copyWith(color: c.textPrimary)),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(

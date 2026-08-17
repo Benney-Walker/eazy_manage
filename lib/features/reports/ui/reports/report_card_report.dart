@@ -185,7 +185,7 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
                     if (r.academicYear.isNotEmpty) r.academicYear,
                   ].join('  ·  '),
                   style:
-                      AppTypography.caption.copyWith(color: c.textSecondary)),
+                  AppTypography.caption.copyWith(color: c.textSecondary)),
               const SizedBox(height: AppSpacing.md),
               Wrap(spacing: AppSpacing.xl, runSpacing: AppSpacing.md, children: [
                 _stat(c, 'Total', r.totalScore),
@@ -306,20 +306,20 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
 
   Widget _conduct(AppColors c, ReportCardConduct cd) {
     Widget rating(String label, String value) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(children: [
-            SizedBox(
-                width: 160,
-                child: Text(label,
-                    style: AppTypography.body
-                        .copyWith(color: c.textSecondary))),
-            Expanded(
-              child: Text(value.isEmpty ? '—' : value.replaceAll('_', ' '),
-                  style:
-                      AppTypography.bodyStrong.copyWith(color: c.textPrimary)),
-            ),
-          ]),
-        );
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(children: [
+        SizedBox(
+            width: 160,
+            child: Text(label,
+                style: AppTypography.body
+                    .copyWith(color: c.textSecondary))),
+        Expanded(
+          child: Text(value.isEmpty ? '—' : value.replaceAll('_', ' '),
+              style:
+              AppTypography.bodyStrong.copyWith(color: c.textPrimary)),
+        ),
+      ]),
+    );
 
     return Container(
       width: double.infinity,

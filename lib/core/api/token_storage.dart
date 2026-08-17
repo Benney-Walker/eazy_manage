@@ -1,10 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Persists the auth token and the minimal session facts across launches,
-/// using the OS secure store (Keychain / Credential Manager / libsecret).
-///
-/// Mirrors what the JavaFX `SessionManager` kept: token, staffId, staffName,
-/// institutionName, the comma-joined roles, and the last active role.
 class TokenStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -69,11 +64,15 @@ class TokenStorage {
   /// Rehydrate a full stored session, or null if nothing is stored.
   Future<StoredSession?> read() async {
     final t = await token;
+    final rt = await refreshToken;
     final id = await staffId;
-    if (t == null || t.isEmpty || id == null || id.isEmpty) return null;
+    if (id == null || id.isEmpty) return null;
+    final hasAccess = t != null && t.isNotEmpty;
+    final hasRefresh = rt != null && rt.isNotEmpty;
+    if (!hasAccess && !hasRefresh) return null;
     return StoredSession(
-      token: t,
-      refreshToken: await refreshToken ?? '',
+      token: t ?? '',
+      refreshToken: rt ?? '',
       staffId: id,
       staffName: await staffName ?? '',
       institutionName: await institutionName ?? '',

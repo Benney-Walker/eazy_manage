@@ -17,6 +17,12 @@ class SemesterSummary {
         semesterName: (j['semesterName'] ?? '').toString(),
         academicYear: (j['academicYear'] ?? '').toString(),
       );
+
+  Map<String, dynamic> toJson() => {
+    'semesterId': semesterId,
+    'semesterName': semesterName,
+    'academicYear': academicYear,
+  };
 }
 
 class SemesterDetail {

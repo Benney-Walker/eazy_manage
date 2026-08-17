@@ -90,16 +90,16 @@ class AttendanceScreen extends ConsumerWidget {
           SizedBox(
             width: 240,
             child: semestersAsync.when(
-              loading: () => _hintBox(c, 'Loading semesters…'),
-              error: (_, __) => _hintBox(c, 'Semesters unavailable'),
+              loading: () => _hintBox(c, 'Loading terms…'),
+              error: (_, __) => _hintBox(c, 'Terms unavailable'),
               data: (semesters) {
                 final valid = semesters.any((s) => s.semesterId == semesterId)
                     ? semesterId
                     : null;
                 return AcademicsDropdown<String>(
-                  label: 'Semester',
+                  label: 'Term',
                   value: valid,
-                  hint: 'Select semester',
+                  hint: 'Select term',
                   items: [
                     for (final s in semesters)
                       DropdownMenuItem(
@@ -306,8 +306,8 @@ class AttendanceScreen extends ConsumerWidget {
     if (semesterId == null) {
       return const AcademicsEmpty(
         icon: Icons.filter_alt_rounded,
-        title: 'Choose a semester',
-        subtitle: 'Select a semester above to load the records for this date.',
+        title: 'Choose a term',
+        subtitle: 'Select a term above to load the records for this date.',
       );
     }
 

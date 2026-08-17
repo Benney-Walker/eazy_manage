@@ -14,11 +14,6 @@ import '../data/academics_models.dart';
 import '../data/academics_providers.dart';
 import 'academics_widgets.dart';
 
-/// Classes management: list every class, add a new one (name + instructor),
-/// or edit an existing class's name and assigned instructor.
-///
-/// Reuses `classesProvider` (from Students) for the list and
-/// `staffRosterProvider` (from Staff) for the instructor picker.
 class ClassesTab extends ConsumerWidget {
   const ClassesTab({super.key});
 
@@ -47,7 +42,7 @@ class ClassesTab extends ConsumerWidget {
               AppButton.primary(
                 label: 'Add class',
                 icon: Icons.add_rounded,
-                onPressed: () => _openEditor(context, ref, null),
+                onPressed: () => refreshClasses(ref),
               ),
             ],
           ),
@@ -63,7 +58,7 @@ class ClassesTab extends ConsumerWidget {
                 action: AppButton.secondary(
                   label: 'Retry',
                   icon: Icons.refresh_rounded,
-                  onPressed: () => ref.invalidate(classesProvider),
+                  onPressed: () => refreshClasses(ref),
                 ),
               ),
               data: (classes) {
@@ -181,7 +176,8 @@ class _ClassEditorState extends ConsumerState<_ClassEditor> {
         );
       }
       if (!mounted) return;
-      ref.invalidate(classesProvider);
+      await refreshClasses(ref);
+      if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_isEdit ? 'Class updated.' : 'Class added.')),

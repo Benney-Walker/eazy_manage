@@ -13,7 +13,7 @@ import '../data/conduct_models.dart';
 import '../data/conduct_providers.dart';
 import 'conduct_editor_sheet.dart';
 
-/// Conduct: teaching staff pick a class + semester, see each student's conduct
+/// Conduct: teaching staff pick a class + term, see each student's conduct
 /// record with how complete it is, and open a student to rate the six conduct
 /// categories and add remarks. Saves are local-first (instant, offline-safe).
 class ConductScreen extends ConsumerWidget {
@@ -63,7 +63,7 @@ class ConductScreen extends ConsumerWidget {
               error: (_, __) => _hintBox(c, 'Classes unavailable'),
               data: (classes) {
                 final valid =
-                    classes.any((cl) => cl.levelId == levelId) ? levelId : null;
+                classes.any((cl) => cl.levelId == levelId) ? levelId : null;
                 return AcademicsDropdown<String>(
                   label: 'Class',
                   value: valid,
@@ -78,7 +78,7 @@ class ConductScreen extends ConsumerWidget {
                       ),
                   ],
                   onChanged: (v) =>
-                      ref.read(conductLevelIdProvider.notifier).state = v,
+                  ref.read(conductLevelIdProvider.notifier).state = v,
                 );
               },
             ),
@@ -87,16 +87,16 @@ class ConductScreen extends ConsumerWidget {
           SizedBox(
             width: 240,
             child: semestersAsync.when(
-              loading: () => _hintBox(c, 'Loading semesters…'),
-              error: (_, __) => _hintBox(c, 'Semesters unavailable'),
+              loading: () => _hintBox(c, 'Loading terms…'),
+              error: (_, __) => _hintBox(c, 'Terms unavailable'),
               data: (semesters) {
                 final valid = semesters.any((s) => s.semesterId == semesterId)
                     ? semesterId
                     : null;
                 return AcademicsDropdown<String>(
-                  label: 'Semester',
+                  label: 'Term',
                   value: valid,
-                  hint: 'Select semester',
+                  hint: 'Select term',
                   items: [
                     for (final s in semesters)
                       DropdownMenuItem(
@@ -107,7 +107,7 @@ class ConductScreen extends ConsumerWidget {
                       ),
                   ],
                   onChanged: (v) =>
-                      ref.read(conductSemesterIdProvider.notifier).state = v,
+                  ref.read(conductSemesterIdProvider.notifier).state = v,
                 );
               },
             ),
@@ -119,7 +119,7 @@ class ConductScreen extends ConsumerWidget {
               label: 'Refresh',
               icon: Icons.refresh_rounded,
               onPressed:
-                  ready ? () => ref.invalidate(conductRecordsProvider) : null,
+              ready ? () => ref.invalidate(conductRecordsProvider) : null,
             );
           }),
         ],
@@ -144,7 +144,7 @@ class ConductScreen extends ConsumerWidget {
             border: Border.all(color: c.inputBorder, width: AppStroke.hairline),
           ),
           child:
-              Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
+          Text(text, style: AppTypography.body.copyWith(color: c.textMuted)),
         ),
       ],
     );
@@ -155,7 +155,7 @@ class ConductScreen extends ConsumerWidget {
     if (!ready) {
       return const AcademicsEmpty(
         icon: Icons.flag_rounded,
-        title: 'Choose a class and semester',
+        title: 'Choose a class and term',
         subtitle: 'Pick both above to load the conduct records for the class.',
       );
     }
@@ -178,7 +178,7 @@ class ConductScreen extends ConsumerWidget {
           return const AcademicsEmpty(
             icon: Icons.flag_outlined,
             title: 'No students',
-            subtitle: 'There are no conduct records for this class and semester.',
+            subtitle: 'There are no conduct records for this class and term.',
           );
         }
         final complete = records.where((r) => r.isComplete).length;
@@ -215,9 +215,9 @@ class ConductScreen extends ConsumerWidget {
       trailing: r.isComplete
           ? const AppBadge(label: 'Complete', intent: BadgeIntent.success)
           : AppBadge(
-              label: '${r.ratedCount}/${ConductCategory.all.length} rated',
-              intent: r.ratedCount == 0 ? BadgeIntent.neutral : BadgeIntent.warning,
-            ),
+        label: '${r.ratedCount}/${ConductCategory.all.length} rated',
+        intent: r.ratedCount == 0 ? BadgeIntent.neutral : BadgeIntent.warning,
+      ),
       onTap: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,

@@ -14,7 +14,7 @@ final resultsRepositoryProvider = Provider<ResultsRepository>((ref) {
   );
 });
 
-/// The class → subject → semester context for score entry.
+/// The class → subject → term context for score entry.
 final resultsLevelIdProvider = StateProvider<String?>((ref) => null);
 final resultsSubjectIdProvider = StateProvider<String?>((ref) => null);
 final resultsSemesterIdProvider = StateProvider<String?>((ref) => null);
@@ -22,13 +22,13 @@ final resultsSemesterIdProvider = StateProvider<String?>((ref) => null);
 /// Subjects available for the chosen class (reuses the academics subjects
 /// endpoint). Empty until a class is picked.
 final resultsSubjectsProvider =
-    FutureProvider.autoDispose<List<SubjectSummary>>((ref) async {
+FutureProvider.autoDispose<List<SubjectSummary>>((ref) async {
   final levelId = ref.watch(resultsLevelIdProvider);
   if (levelId == null) return const [];
   return ref.watch(academicsRepositoryProvider).loadSubjects(levelId);
 });
 
-/// True once class + subject + semester are all chosen.
+/// True once class + subject + term are all chosen.
 final resultsContextReadyProvider = Provider<bool>((ref) {
   return ref.watch(resultsLevelIdProvider) != null &&
       ref.watch(resultsSubjectIdProvider) != null &&
@@ -37,12 +37,12 @@ final resultsContextReadyProvider = Provider<bool>((ref) {
 
 /// The loaded subject roster + existing scores for the chosen context.
 final subjectScoresProvider =
-    FutureProvider.autoDispose<SubjectScores?>((ref) async {
+FutureProvider.autoDispose<SubjectScores?>((ref) async {
   final subjectId = ref.watch(resultsSubjectIdProvider);
   final semesterId = ref.watch(resultsSemesterIdProvider);
   if (subjectId == null || semesterId == null) return null;
   return ref.watch(resultsRepositoryProvider).loadSubjectStudents(
-        subjectId: subjectId,
-        semesterId: semesterId,
-      );
+    subjectId: subjectId,
+    semesterId: semesterId,
+  );
 });

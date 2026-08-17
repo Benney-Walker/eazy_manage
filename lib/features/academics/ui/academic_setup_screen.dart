@@ -8,8 +8,12 @@ import 'grading_tab.dart';
 import 'classes_tab.dart';
 import 'holidays_tab.dart';
 
-/// The Academic Setup surface. Phase 6a covers three of the five JavaFX tabs:
-/// Semesters, Subjects, Grading. (Classes + Holidays land in Phase 6b.)
+class _AcademicTab {
+  final String label;
+  final Widget view;
+  const _AcademicTab(this.label, this.view);
+}
+
 class AcademicSetupScreen extends StatefulWidget {
   const AcademicSetupScreen({super.key});
 
@@ -19,11 +23,20 @@ class AcademicSetupScreen extends StatefulWidget {
 
 class _AcademicSetupScreenState extends State<AcademicSetupScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 5, vsync: this);
+  static const List<_AcademicTab> _tabsSpec = [
+    _AcademicTab('Classes', ClassesTab()),
+    _AcademicTab('Terms', SemestersTab()),
+    _AcademicTab('Subjects', SubjectsTab()),
+    _AcademicTab('Grading', GradingTab()),
+    _AcademicTab('Holidays', HolidaysTab()),
+  ];
+
+  late final TabController _controller =
+  TabController(length: _tabsSpec.length, vsync: this);
 
   @override
   void dispose() {
-    _tabs.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -43,28 +56,20 @@ class _AcademicSetupScreenState extends State<AcademicSetupScreen>
           child: Align(
             alignment: Alignment.centerLeft,
             child: TabBar(
-              controller: _tabs,
+              controller: _controller,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              tabs: const [
-                Tab(text: 'Classes'),
-                Tab(text: 'Semesters'),
-                Tab(text: 'Subjects'),
-                Tab(text: 'Grading'),
-                Tab(text: 'Holidays'),
+              tabs: [
+                for (final t in _tabsSpec) Tab(text: t.label),
               ],
             ),
           ),
         ),
         Expanded(
           child: TabBarView(
-            controller: _tabs,
-            children: const [
-              ClassesTab(),
-              SemestersTab(),
-              SubjectsTab(),
-              GradingTab(),
-              HolidaysTab(),
+            controller: _controller,
+            children: [
+              for (final t in _tabsSpec) t.view,
             ],
           ),
         ),

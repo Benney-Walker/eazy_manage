@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_providers.dart';
+import '../../../core/cache/reference_cache.dart';
+import '../../../core/connectivity/connectivity_providers.dart';
 import 'student_models.dart';
 import 'student_repository.dart';
 
@@ -8,10 +10,29 @@ final studentRepositoryProvider = Provider<StudentRepository>((ref) {
   return StudentRepository(ref.watch(apiClientProvider));
 });
 
-/// The class/grade options (loaded once, cached for the session).
+/// The class/grade options. Backed by a durable TTL cache: served from cache
+/// while fresh, refreshed from the network when stale and online, and falling
+/// back to the last cached copy when offline — so classes are available
+/// instantly on launch and survive being offline.
 final classesProvider = FutureProvider<List<ClassOption>>((ref) async {
-  return ref.watch(studentRepositoryProvider).loadClasses();
+  return readThroughCache<ClassOption>(
+    cache: ref.read(referenceCacheProvider),
+    isOnline: ref.read(isOnlineProvider),
+    key: ReferenceCacheKeys.classes,
+    ttl: kReferenceCacheTtl,
+    fetch: () => ref.read(studentRepositoryProvider).loadClasses(),
+    fromJson: ClassOption.fromJson,
+    toJson: (c) => c.toJson(),
+  );
 });
+
+/// Force a fresh network load of classes: drop the cache, then re-run the
+/// provider. Use after a mutation (add/edit) or a manual "refresh" tap so the
+/// change shows immediately instead of waiting for the TTL.
+Future<void> refreshClasses(WidgetRef ref) async {
+  await ref.read(referenceCacheProvider).bust(ReferenceCacheKeys.classes);
+  ref.invalidate(classesProvider);
+}
 
 /// The currently selected class in the Browse screen (null = none yet).
 final selectedClassProvider = StateProvider<ClassOption?>((ref) => null);

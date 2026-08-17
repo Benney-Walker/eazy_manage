@@ -24,7 +24,7 @@ class FeesSetupTab extends ConsumerWidget {
     if (!ready) {
       return const AcademicsEmpty(
         icon: Icons.filter_alt_rounded,
-        title: 'Choose a class and semester',
+        title: 'Choose a class and term',
         subtitle: 'Pick both above to view or set the fee for that term.',
       );
     }
@@ -54,7 +54,7 @@ class FeesSetupTab extends ConsumerWidget {
     return Row(
       children: [
         Expanded(
-          child: Text('Semester fee',
+          child: Text('Term fee',
               style: AppTypography.subtitle.copyWith(color: c.textPrimary)),
         ),
         AppButton.secondary(
@@ -94,7 +94,7 @@ class FeesSetupTab extends ConsumerWidget {
           return const AcademicsEmpty(
             icon: Icons.account_balance_wallet_rounded,
             title: 'No fee set for this class this term',
-            subtitle: 'Use "Set fee" above to configure the semester fee.',
+            subtitle: 'Use "Set fee" above to configure the term fee.',
           );
         }
         return _feeCard(context, c, fees);

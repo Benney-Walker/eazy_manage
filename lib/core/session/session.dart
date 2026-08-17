@@ -13,10 +13,8 @@ class Session {
   final String fullName;
   final String organizationName;
 
-  /// All roles the user holds (a user can have several).
   final List<AppRole> roles;
 
-  /// The currently active role — drives nav filtering and role-scoped UI.
   final AppRole role;
 
   const Session({
@@ -65,9 +63,6 @@ class AuthState {
   bool get isAuthenticated => status == AuthStatus.authenticated;
 }
 
-/// Owns authentication: restores a stored session on launch, performs login,
-/// switches the active role, and signs out. Wires the API client's 401 hook
-/// so an expired token anywhere drops the user back to login.
 class AuthController extends Notifier<AuthState> {
   late final AuthRepository _repo;
   late final ApiClient _api;
@@ -95,11 +90,33 @@ class AuthController extends Notifier<AuthState> {
       state = const AuthState.unauthenticated();
       return;
     }
+
+    // Prime the client. The access token may be expired — that's fine; the
+    // refresh token is what keeps the session alive across restarts.
     _api.setCredentials(
       token: stored.token,
       staffId: stored.staffId,
       refreshToken: stored.refreshToken,
     );
+
+    if (stored.refreshToken.isNotEmpty) {
+      // Proactively renew the access token so we open straight to the
+      // dashboard with a valid token in hand.
+      final result = await _api.refreshNow();
+      if (result.outcome == TokenRefreshOutcome.rejected) {
+        // The refresh token itself is invalid/expired → genuine sign-out.
+        _api.clearCredentials();
+        await _repo.signOut();
+        state = const AuthState.unauthenticated();
+        return;
+      }
+
+    } else if (stored.token.isEmpty) {
+      // No refresh token and no access token — nothing to sustain the session.
+      state = const AuthState.unauthenticated();
+      return;
+    }
+
     state = AuthState.authenticated(_sessionFromStored(stored));
   }
 
@@ -112,9 +129,6 @@ class AuthController extends Notifier<AuthState> {
     try {
       final res = await _repo.login(staffId: staffId, password: password);
 
-      // Prime the client with the fresh tokens immediately so the first
-      // authenticated call (the dashboard) carries the header without racing
-      // secure storage, and so a mid-session refresh has the refresh token.
       _api.setCredentials(
         token: res.authToken,
         staffId: res.staffId,
