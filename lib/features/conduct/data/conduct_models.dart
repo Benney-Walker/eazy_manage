@@ -75,18 +75,19 @@ class StudentConductRecord {
 
   /// Read a rating by category key (used by the rubric grid).
   String ratingFor(String key) => switch (key) {
-        'regular' => regular,
-        'punctual' => punctual,
-        'physicalAppearance' => physicalAppearance,
-        'social' => social,
-        'emotional' => emotional,
-        'cognitiveSkills' => cognitiveSkills,
-        _ => '',
-      };
+    'regular' => regular,
+    'punctual' => punctual,
+    'physicalAppearance' => physicalAppearance,
+    'social' => social,
+    'emotional' => emotional,
+    'cognitiveSkills' => cognitiveSkills,
+    _ => '',
+  };
 
-  /// True once every category has a rating — used to show a "complete" badge.
-  bool get isComplete => ConductCategory.all
-      .every((c) => ratingFor(c.key).isNotEmpty);
+  bool get isComplete =>
+      ConductCategory.all.every((c) => ratingFor(c.key).isNotEmpty) &&
+          conductRemark.trim().isNotEmpty &&
+          peculiarIssue.trim().isNotEmpty;
 
   /// How many of the six categories have been rated.
   int get ratedCount =>
@@ -109,18 +110,18 @@ class StudentConductRecord {
 
   /// Body for `PUT /staff/v1/save-conduct-record`.
   Map<String, dynamic> toSaveJson() => {
-        'studentId': studentId,
-        'studentName': studentName,
-        'semesterId': semesterId,
-        'regular': regular,
-        'punctual': punctual,
-        'physicalAppearance': physicalAppearance,
-        'social': social,
-        'emotional': emotional,
-        'cognitiveSkills': cognitiveSkills,
-        'conductRemark': conductRemark,
-        'peculiarIssue': peculiarIssue,
-      };
+    'studentId': studentId,
+    'studentName': studentName,
+    'semesterId': semesterId,
+    'regular': regular,
+    'punctual': punctual,
+    'physicalAppearance': physicalAppearance,
+    'social': social,
+    'emotional': emotional,
+    'cognitiveSkills': cognitiveSkills,
+    'conductRemark': conductRemark,
+    'peculiarIssue': peculiarIssue,
+  };
 
   StudentConductRecord copyWith({
     String? regular,
@@ -148,12 +149,12 @@ class StudentConductRecord {
 
   /// Set a rating by category key, returning a new record.
   StudentConductRecord withRating(String key, String value) => switch (key) {
-        'regular' => copyWith(regular: value),
-        'punctual' => copyWith(punctual: value),
-        'physicalAppearance' => copyWith(physicalAppearance: value),
-        'social' => copyWith(social: value),
-        'emotional' => copyWith(emotional: value),
-        'cognitiveSkills' => copyWith(cognitiveSkills: value),
-        _ => this,
-      };
+    'regular' => copyWith(regular: value),
+    'punctual' => copyWith(punctual: value),
+    'physicalAppearance' => copyWith(physicalAppearance: value),
+    'social' => copyWith(social: value),
+    'emotional' => copyWith(emotional: value),
+    'cognitiveSkills' => copyWith(cognitiveSkills: value),
+    _ => this,
+  };
 }

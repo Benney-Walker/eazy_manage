@@ -32,12 +32,16 @@ class DashboardRepository {
       _count(Endpoints.totalFees),
       _count(Endpoints.feesPaid),
     ]);
+    // The principal's overview includes today's absentees (mirrors the JavaFX
+    // principal dashboard, which loads absent-students).
+    final absent = await _absentStudents();
     return DashboardData(
       totalStudents: results[0],
       totalStaff: results[1],
       totalTeachingStaff: results[2],
       totalFees: results[3],
       feesPaid: results[4],
+      absentStudents: absent,
     );
   }
 
@@ -72,12 +76,12 @@ class DashboardRepository {
   }
 
   Future<DashboardData> _staff() async {
+    // NB: the JavaFX staff dashboard shows the teacher's own assigned-class
+    // roster (load-staff-grades), not school-wide absentees — absentees are a
+    // principal-level overview. The roster view is a separate port; for now the
+    // staff dashboard is the student count plus quick guidance.
     final students = await _count(Endpoints.totalStudents);
-    final absent = await _absentStudents();
-    return DashboardData(
-      totalStudents: students,
-      absentStudents: absent,
-    );
+    return DashboardData(totalStudents: students);
   }
 
   // ---- Primitives ---------------------------------------------------------

@@ -136,8 +136,8 @@ class DashboardScreen extends ConsumerWidget {
             final perRow = constraints.maxWidth > 900
                 ? 4
                 : constraints.maxWidth > 560
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             final spacing = AppSpacing.lg;
             final cardWidth =
                 (constraints.maxWidth - spacing * (perRow - 1)) / perRow;
@@ -185,7 +185,6 @@ class DashboardScreen extends ConsumerWidget {
       case AppRole.generalStaff:
         return [
           AppMetricCard(icon: Icons.groups_rounded, label: 'Students', value: n(d.totalStudents)),
-          AppMetricCard(icon: Icons.person_off_rounded, label: 'Absent Today', value: n(d.absentStudents.length), accent: c.warning),
         ];
     }
   }
@@ -204,6 +203,15 @@ class DashboardScreen extends ConsumerWidget {
           leadingIcon: Icons.receipt_rounded,
         );
       case AppRole.principal:
+        return _listCard(
+          c,
+          title: 'Absent today',
+          empty: 'No absentees recorded today.',
+          rows: d.absentStudents
+              .map((s) => _RowData(s.studentName, s.className, ''))
+              .toList(),
+          leadingIcon: Icons.event_busy_rounded,
+        );
       case AppRole.administrator:
         return _listCard(
           c,
@@ -216,25 +224,17 @@ class DashboardScreen extends ConsumerWidget {
         );
       case AppRole.teachingStaff:
       case AppRole.generalStaff:
-        return _listCard(
-          c,
-          title: 'Absent today',
-          empty: 'No absentees recorded today.',
-          rows: d.absentStudents
-              .map((s) => _RowData(s.studentName, s.className, ''))
-              .toList(),
-          leadingIcon: Icons.event_busy_rounded,
-        );
+        return _guidanceCard(c);
     }
   }
 
   Widget _listCard(
-    AppColors c, {
-    required String title,
-    required String empty,
-    required List<_RowData> rows,
-    required IconData leadingIcon,
-  }) {
+      AppColors c, {
+        required String title,
+        required String empty,
+        required List<_RowData> rows,
+        required IconData leadingIcon,
+      }) {
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -255,6 +255,34 @@ class DashboardScreen extends ConsumerWidget {
             )
           else
             ...rows.take(8).map((r) => _row(c, r, leadingIcon)),
+        ],
+      ),
+    );
+  }
+
+  Widget _guidanceCard(AppColors c) {
+    return AppCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.checklist_rounded, color: c.textSecondary, size: 20),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Your day',
+                    style:
+                    AppTypography.label.copyWith(color: c.textSecondary)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                    'Mark attendance, record conduct, and enter results for '
+                        'your class from the sidebar.',
+                    style:
+                    AppTypography.body.copyWith(color: c.textPrimary)),
+              ],
+            ),
+          ),
         ],
       ),
     );
