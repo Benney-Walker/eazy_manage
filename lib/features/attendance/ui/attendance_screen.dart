@@ -49,13 +49,20 @@ class AttendanceScreen extends ConsumerWidget {
         borderRadius: AppRadius.card,
         border: Border.all(color: c.border, width: AppStroke.hairline),
       ),
-      child: Row(
+      child: Wrap(
+        spacing: AppSpacing.md,
+        runSpacing: AppSpacing.sm,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Icon(Icons.filter_alt_rounded, size: 18, color: c.textSecondary),
-          const SizedBox(width: AppSpacing.sm),
-          Text('Viewing:',
-              style: AppTypography.label.copyWith(color: c.textSecondary)),
-          const SizedBox(width: AppSpacing.md),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.filter_alt_rounded, size: 18, color: c.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              Text('Viewing:',
+                  style: AppTypography.label.copyWith(color: c.textSecondary)),
+            ],
+          ),
           SizedBox(
             width: 220,
             child: classesAsync.when(
@@ -63,7 +70,7 @@ class AttendanceScreen extends ConsumerWidget {
               error: (_, __) => _hintBox(c, 'Classes unavailable'),
               data: (classes) {
                 final valid =
-                    classes.any((cl) => cl.levelId == levelId) ? levelId : null;
+                classes.any((cl) => cl.levelId == levelId) ? levelId : null;
                 return AcademicsDropdown<String>(
                   label: 'Class',
                   value: valid,
@@ -86,7 +93,6 @@ class AttendanceScreen extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
           SizedBox(
             width: 240,
             child: semestersAsync.when(
@@ -110,7 +116,7 @@ class AttendanceScreen extends ConsumerWidget {
                       ),
                   ],
                   onChanged: (v) =>
-                      ref.read(attendanceSemesterIdProvider.notifier).state = v,
+                  ref.read(attendanceSemesterIdProvider.notifier).state = v,
                 );
               },
             ),
@@ -151,7 +157,7 @@ class AttendanceScreen extends ConsumerWidget {
         icon: Icons.event_available_rounded,
         title: 'Choose a class',
         subtitle:
-            'Pick a class to see the dates attendance was marked, then open a date.',
+        'Pick a class to see the dates attendance was marked, then open a date.',
       );
     }
 
@@ -166,10 +172,10 @@ class AttendanceScreen extends ConsumerWidget {
         Expanded(
           child: date == null
               ? const AcademicsEmpty(
-                  icon: Icons.touch_app_rounded,
-                  title: 'Pick a date',
-                  subtitle: 'Select a marked date to view student attendance.',
-                )
+            icon: Icons.touch_app_rounded,
+            title: 'Pick a date',
+            subtitle: 'Select a marked date to view student attendance.',
+          )
               : _recordsPane(context, ref, c),
         ),
       ],
@@ -220,7 +226,7 @@ class AttendanceScreen extends ConsumerWidget {
                   icon: Icons.event_busy_rounded,
                   title: 'No marked dates',
                   subtitle:
-                      'Attendance hasn\'t been recorded for this class yet.',
+                  'Attendance hasn\'t been recorded for this class yet.',
                 );
               }
               return DecoratedBox(
@@ -228,7 +234,7 @@ class AttendanceScreen extends ConsumerWidget {
                   color: c.surface,
                   borderRadius: AppRadius.card,
                   border:
-                      Border.all(color: c.border, width: AppStroke.hairline),
+                  Border.all(color: c.border, width: AppStroke.hairline),
                 ),
                 child: ClipRRect(
                   borderRadius: AppRadius.card,
@@ -260,14 +266,14 @@ class AttendanceScreen extends ConsumerWidget {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       Text(d.dateMarked,
                                           style: AppTypography.bodyStrong
                                               .copyWith(
-                                                  color: isSel
-                                                      ? c.brand
-                                                      : c.textPrimary)),
+                                              color: isSel
+                                                  ? c.brand
+                                                  : c.textPrimary)),
                                       Text(
                                         [
                                           if (d.dayMarked.isNotEmpty)
@@ -368,7 +374,7 @@ class AttendanceScreen extends ConsumerWidget {
                   color: c.surface,
                   borderRadius: AppRadius.card,
                   border:
-                      Border.all(color: c.border, width: AppStroke.hairline),
+                  Border.all(color: c.border, width: AppStroke.hairline),
                 ),
                 child: ClipRRect(
                   borderRadius: AppRadius.card,
@@ -393,7 +399,7 @@ class AttendanceScreen extends ConsumerWidget {
                                     ? c.successSubtle
                                     : c.dangerSubtle,
                                 borderRadius:
-                                    const BorderRadius.all(AppRadius.mdR),
+                                const BorderRadius.all(AppRadius.mdR),
                               ),
                               child: Icon(
                                 r.isPresent
