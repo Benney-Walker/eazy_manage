@@ -103,7 +103,8 @@ class _ClassResultsReportState extends ConsumerState<ClassResultsReport> {
                 path: _ready
                     ? Endpoints.generateClassReport(_levelId!, _semesterId!)
                     : null,
-                suggestedName: 'Class Results',
+                label: 'Download report cards',
+                suggestedName: 'Class Report Cards',
               ),
             ]),
           ),

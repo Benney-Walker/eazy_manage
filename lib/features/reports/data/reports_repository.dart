@@ -78,4 +78,24 @@ class ReportsRepository {
     if (data is Map<String, dynamic>) return StudentFeesReport.fromJson(data);
     return null;
   }
+
+  // ---- End-of-year progression (teacher, third term only) ----
+  // User-initiated mutations, so these keep the default 401 handling
+  // (triggerLogoutOn401: true) rather than the read guard above.
+
+  Future<void> promoteStudent({
+    required String studentId,
+    required String promotionClassId,
+    required String semesterId,
+  }) async {
+    await _api.put(
+        Endpoints.promoteStudent(studentId, promotionClassId, semesterId));
+  }
+
+  Future<void> repeatStudent({
+    required String studentId,
+    required String semesterId,
+  }) async {
+    await _api.put(Endpoints.repeatStudent(studentId, semesterId));
+  }
 }

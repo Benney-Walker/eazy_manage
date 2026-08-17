@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_config.dart';
+import '../../../../core/navigation/nav_item.dart';
+import '../../../../core/session/session.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimens.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../../academics/data/academics_providers.dart';
 import '../../../students/data/student_models.dart';
 import '../../../students/data/student_providers.dart';
@@ -29,11 +33,21 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
   AsyncValue<ReportCard?>? _result;
   bool _loading = false;
 
+  // End-of-year progression (teacher, third term only).
+  String? _promotionClassId;
+  bool _promoting = false;
+  String? _promoStatus;
+
   bool get _ready => _studentId != null && _semesterId != null;
 
   Future<void> _run() async {
     if (!_ready) return;
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      // Fresh card → clear any progression state from a previous student/term.
+      _promotionClassId = null;
+      _promoStatus = null;
+    });
     try {
       final card = await ref
           .read(reportsRepositoryProvider)
@@ -51,6 +65,69 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
       });
     }
   }
+
+  Future<void> _promote(ReportCard card) async {
+    final target = _promotionClassId;
+    if (target == null) {
+      setState(() => _promoStatus = 'Select a class to promote to.');
+      return;
+    }
+    if (target == _levelId) {
+      setState(() =>
+      _promoStatus = 'Student cannot be promoted to the same class.');
+      return;
+    }
+    setState(() {
+      _promoting = true;
+      _promoStatus = 'Processing…';
+    });
+    try {
+      await ref.read(reportsRepositoryProvider).promoteStudent(
+        studentId: card.studentId,
+        promotionClassId: target,
+        semesterId: _semesterId!,
+      );
+      if (!mounted) return;
+      setState(() {
+        _promoting = false;
+        _promotionClassId = null;
+        _promoStatus = 'Promotion successful.';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _promoting = false;
+        _promoStatus = _friendlyError(e);
+      });
+    }
+  }
+
+  Future<void> _repeat(ReportCard card) async {
+    setState(() {
+      _promoting = true;
+      _promoStatus = 'Processing…';
+    });
+    try {
+      await ref.read(reportsRepositoryProvider).repeatStudent(
+        studentId: card.studentId,
+        semesterId: _semesterId!,
+      );
+      if (!mounted) return;
+      setState(() {
+        _promoting = false;
+        _promoStatus = 'Repetition successful.';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _promoting = false;
+        _promoStatus = _friendlyError(e);
+      });
+    }
+  }
+
+  String _friendlyError(Object e) =>
+      e is ApiException ? e.message : 'Something went wrong. Please try again.';
 
   @override
   Widget build(BuildContext context) {
@@ -237,8 +314,91 @@ class _ReportCardReportState extends ConsumerState<ReportCardReport> {
           const SizedBox(height: AppSpacing.sm),
           _conduct(c, r.conduct!),
         ],
+
+        // End-of-year progression — only for teaching staff, and only in the
+        // third term (mirrors the JavaFX visibility gate). Hidden entirely
+        // otherwise rather than shown-but-disabled.
+        if (_canProgress(r)) _promotionSection(c, r),
+
         const SizedBox(height: AppSpacing.xl),
       ],
+    );
+  }
+
+  bool _canProgress(ReportCard r) {
+    final role = ref.read(sessionProvider)?.role;
+    return role == AppRole.teachingStaff && r.semesterName == 'THIRD_TERM';
+  }
+
+  Widget _promotionSection(AppColors c, ReportCard card) {
+    final classesAsync = ref.watch(classesProvider);
+    final canPromote = !_promoting &&
+        _promotionClassId != null &&
+        _promotionClassId != _levelId;
+    final who = card.studentName.isEmpty ? 'this student' : card.studentName;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.lg),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: AppRadius.card,
+          border: Border.all(color: c.border, width: AppStroke.hairline),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('End-of-year progression',
+                style: AppTypography.label.copyWith(color: c.textSecondary)),
+            const SizedBox(height: AppSpacing.xs),
+            Text('Promote $who to the next class, or mark them to repeat.',
+                style: AppTypography.caption.copyWith(color: c.textMuted)),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              crossAxisAlignment: WrapCrossAlignment.end,
+              children: [
+                ReportPicker(
+                  label: 'Promote to',
+                  hint: 'Select class',
+                  value: _promotionClassId,
+                  width: 200,
+                  items: classesAsync.maybeWhen(
+                    orElse: () => const [],
+                    data: (classes) => [
+                      for (final cl in classes)
+                        DropdownMenuItem(
+                            value: cl.levelId, child: Text(cl.levelName)),
+                    ],
+                  ),
+                  onChanged: (v) => setState(() {
+                    _promotionClassId = v;
+                    _promoStatus = null;
+                  }),
+                ),
+                AppButton.primary(
+                  label: 'Promote',
+                  busy: _promoting,
+                  onPressed: canPromote ? () => _promote(card) : null,
+                ),
+                AppButton.secondary(
+                  label: 'Repeat',
+                  onPressed: _promoting ? null : () => _repeat(card),
+                ),
+              ],
+            ),
+            if (_promoStatus != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(_promoStatus!,
+                  style:
+                  AppTypography.caption.copyWith(color: c.textSecondary)),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

@@ -50,10 +50,15 @@ class DownloadPdfButton extends ConsumerStatefulWidget {
   final String? path;
   final String suggestedName;
 
+  /// Button caption. Defaults to a generic "Download PDF"; override when the
+  /// download is something more specific (e.g. a class's report cards).
+  final String label;
+
   const DownloadPdfButton({
     super.key,
     required this.path,
     required this.suggestedName,
+    this.label = 'Download PDF',
   });
 
   @override
@@ -69,9 +74,9 @@ class _DownloadPdfButtonState extends ConsumerState<DownloadPdfButton> {
     setState(() => _busy = true);
     try {
       final result = await ref.read(reportPdfServiceProvider).downloadAndSave(
-            path: path,
-            suggestedName: widget.suggestedName,
-          );
+        path: path,
+        suggestedName: widget.suggestedName,
+      );
       if (!mounted) return;
       setState(() => _busy = false);
       if (result == PdfSaveResult.saved) {
@@ -97,7 +102,7 @@ class _DownloadPdfButtonState extends ConsumerState<DownloadPdfButton> {
   @override
   Widget build(BuildContext context) {
     return AppButton.primary(
-      label: 'Download PDF',
+      label: widget.label,
       icon: Icons.download_rounded,
       busy: _busy,
       onPressed: widget.path == null ? null : _download,
@@ -209,25 +214,25 @@ class ReportStates {
       Center(child: CircularProgressIndicator(color: c.brand));
 
   static Widget error(Object e, VoidCallback onRetry) => AcademicsEmpty(
-        icon: Icons.cloud_off_rounded,
-        title: 'Couldn\'t load the report',
-        subtitle: e.toString().replaceFirst('ApiException: ', ''),
-        action: AppButton.secondary(
-          label: 'Retry',
-          icon: Icons.refresh_rounded,
-          onPressed: onRetry,
-        ),
-      );
+    icon: Icons.cloud_off_rounded,
+    title: 'Couldn\'t load the report',
+    subtitle: e.toString().replaceFirst('ApiException: ', ''),
+    action: AppButton.secondary(
+      label: 'Retry',
+      icon: Icons.refresh_rounded,
+      onPressed: onRetry,
+    ),
+  );
 
   static Widget prompt(String title, String subtitle) => AcademicsEmpty(
-        icon: Icons.tune_rounded,
-        title: title,
-        subtitle: subtitle,
-      );
+    icon: Icons.tune_rounded,
+    title: title,
+    subtitle: subtitle,
+  );
 
   static Widget empty(String title, String subtitle) => AcademicsEmpty(
-        icon: Icons.inbox_rounded,
-        title: title,
-        subtitle: subtitle,
-      );
+    icon: Icons.inbox_rounded,
+    title: title,
+    subtitle: subtitle,
+  );
 }

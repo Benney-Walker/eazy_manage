@@ -152,6 +152,18 @@ abstract final class Endpoints {
   static const String saveScores =
       '${ApiConfig.student}${ApiConfig.v1}/save-scores';
 
+  // ---- Reports: end-of-year progression (third-term only) ----
+  // PUT, no body; staffId travels in the header via the interceptor.
+  static String promoteStudent(
+      String studentId, String promotionClassId, String semesterId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/promote-student'
+          '?studentId=$studentId'
+          '&promotionClassId=$promotionClassId'
+          '&semesterId=$semesterId';
+  static String repeatStudent(String studentId, String semesterId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/repeat-student'
+          '?studentId=$studentId&semesterId=$semesterId';
+
   // ---- Broadcasts (messaging) ----
   static const String broadcastSms =
       '${ApiConfig.admin}${ApiConfig.v1}/broadcasts-message';
