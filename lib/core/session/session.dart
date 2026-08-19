@@ -174,6 +174,10 @@ class AuthController extends Notifier<AuthState> {
   }
 
   void _onUnauthorized(bool refreshTokenRejected) {
+    // Every unresolved 401 sends the user to login. Storage is only cleared
+    // when the refresh token itself was rejected (401) — an access-token 401
+    // that couldn't be refreshed for a transient reason leaves the stored
+    // session intact so it can recover.
     _api.clearCredentials();
     if (refreshTokenRejected) {
       _repo.signOut();
@@ -197,6 +201,15 @@ class AuthController extends Notifier<AuthState> {
 
 final authProvider =
 NotifierProvider<AuthController, AuthState>(AuthController.new);
+
+/// The auth repository, for the pre-login flows (subscription, enrollment)
+/// that run outside the authenticated session.
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository(
+    ref.read(apiClientProvider),
+    ref.read(tokenStorageProvider),
+  );
+});
 
 /// Convenience: the current [Session] (or null if not authenticated).
 final sessionProvider = Provider<Session?>((ref) {

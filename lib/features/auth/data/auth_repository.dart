@@ -3,20 +3,12 @@ import '../../../core/api/api_config.dart';
 import '../../../core/api/token_storage.dart';
 import 'login_response.dart';
 
-/// Owns the auth calls and session persistence. The controller talks to this
-/// rather than Dio directly, keeping transport details out of state logic.
 class AuthRepository {
   final ApiClient _api;
   final TokenStorage _storage;
 
   AuthRepository(this._api, this._storage);
 
-  /// POST /auth/v1/staff-login. On success, persists the session (token +
-  /// identity + roles + chosen active role) and returns the response.
-  ///
-  /// Active-role selection mirrors the JavaFX logic: keep the previously
-  /// stored role if it's still one of the user's roles, otherwise take the
-  /// first role in the response.
   Future<LoginResponse> login({
     required String staffId,
     required String password,
@@ -70,4 +62,65 @@ class AuthRepository {
   Future<void> setActiveRole(String role) => _storage.setActiveRole(role);
 
   Future<void> signOut() => _storage.clear();
+
+  Future<String> subscribe({
+    required String institutionName,
+    required String subscriptionCode,
+  }) async {
+    final res = await _api.post(
+      Endpoints.schoolSubscription,
+      body: {
+        'institutionName': institutionName,
+        'subscriptionCode': subscriptionCode,
+      },
+      triggerLogoutOn401: false,
+    );
+    return _extractId(res.data, keys: const ['institutionId', 'id']);
+  }
+
+  /// Enroll a staff member (used for the first Principal after subscription).
+  /// Returns the new staff id on success.
+  Future<String> enrollStaff({
+    required String firstName,
+    required String lastName,
+    required String gender,
+    required String dateOfBirth, // yyyy-MM-dd
+    required String email,
+    required String phoneNumber,
+    required String institutionId,
+    required String password,
+    required List<String> roles,
+  }) async {
+    final res = await _api.post(
+      Endpoints.enrollStaff,
+      body: {
+        'firstName': firstName,
+        'lastName': lastName,
+        'gender': gender,
+        'dateOfBirth': dateOfBirth,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'institutionId': institutionId,
+        'password': password,
+        'roles': roles,
+      },
+      triggerLogoutOn401: false,
+    );
+    return _extractId(res.data, keys: const ['staffId', 'id']);
+  }
+
+  /// The subscription/enrollment endpoints return the new id as the response
+  /// body — either a bare string or a small JSON object.
+  String _extractId(dynamic data, {required List<String> keys}) {
+    if (data is String) return data.trim();
+    if (data is Map) {
+      for (final k in keys) {
+        final v = data[k];
+        if (v != null && v.toString().trim().isNotEmpty) return v.toString().trim();
+      }
+      final msg = data['message'];
+      if (msg != null) return msg.toString().trim();
+    }
+    return data?.toString().trim() ?? '';
+  }
 }

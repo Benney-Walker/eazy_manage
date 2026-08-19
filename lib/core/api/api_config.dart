@@ -67,6 +67,8 @@ abstract final class Endpoints {
       '${ApiConfig.admin}${ApiConfig.v1}/update-staff-info';
   static const String enrollStaff =
       '${ApiConfig.auth}${ApiConfig.v1}/enroll-new-staff';
+  static const String schoolSubscription =
+      '${ApiConfig.auth}${ApiConfig.v1}/school-subscription';
   static String resetStaffPassword(String newPasswordStaffId, String newPassword) =>
       '${ApiConfig.admin}${ApiConfig.v1}/reset-staff-password'
           '?newPasswordStaffId=$newPasswordStaffId&newPassword=$newPassword';

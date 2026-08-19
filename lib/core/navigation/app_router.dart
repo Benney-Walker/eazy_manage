@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../session/session.dart';
 import '../theme/app_colors.dart';
 import '../../features/auth/ui/login_screen.dart';
+import '../../features/auth/ui/subscription_screen.dart';
+import '../../features/auth/ui/enroll_screen.dart';
 import '../../features/academics/ui/academic_setup_screen.dart';
 import '../../features/attendance/ui/attendance_screen.dart';
 import '../../features/conduct/ui/conduct_screen.dart';
@@ -40,16 +42,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return path == '/splash' ? null : '/splash';
       }
 
-      final loggingIn = path == '/auth';
+      final inAuthFlow = path == '/auth' || path.startsWith('/auth/');
       final onSplash = path == '/splash';
 
-      // Not signed in → only /auth is allowed.
+      // Not signed in → the auth flow (login, subscribe, enroll) is allowed.
       if (!auth.isAuthenticated) {
-        return loggingIn ? null : '/auth';
+        return inAuthFlow ? null : '/auth';
       }
 
-      // Signed in but sitting on /auth or /splash → go to the dashboard.
-      if (loggingIn || onSplash) {
+      // Signed in but sitting in the auth flow or splash → go to the dashboard.
+      if (inAuthFlow || onSplash) {
         return '/${NavRegistry.home}';
       }
 
@@ -65,6 +67,15 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (context, state) => const _Splash()),
       GoRoute(path: '/auth', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+          path: '/auth/subscribe',
+          builder: (context, state) => const SubscriptionScreen()),
+      GoRoute(
+          path: '/auth/enroll',
+          builder: (context, state) => EnrollScreen(
+            institutionId:
+            state.uri.queryParameters['institutionId'] ?? '',
+          )),
 
       ShellRoute(
         builder: (context, state, child) =>

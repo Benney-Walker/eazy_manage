@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/session/session.dart';
 import '../../../core/theme/app_colors.dart';
@@ -253,6 +254,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 expand: true,
                 busy: _busy,
                 onPressed: _submit,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Staff are added by your school\'s admin. '
+                                'Please contact your administrator.'),
+                      ),
+                    ),
+                    child: Text('Enroll staff',
+                        style: AppTypography.button
+                            .copyWith(color: c.textSecondary)),
+                  ),
+                  Text('·', style: TextStyle(color: c.textMuted)),
+                  TextButton(
+                    onPressed: _busy ? null : () => context.go('/auth/subscribe'),
+                    child: Text('Register institution',
+                        style: AppTypography.button.copyWith(color: c.brand)),
+                  ),
+                ],
               ),
             ],
           ),
