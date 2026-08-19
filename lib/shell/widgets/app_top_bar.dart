@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/connectivity/connectivity_providers.dart';
 import '../../core/connectivity/connectivity_service.dart';
 import '../../core/navigation/nav_item.dart';
+import '../../core/notification/notifications.dart';
 import '../../core/session/session.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_typography.dart';
+import 'notification_panel.dart';
 
 class AppTopBar extends ConsumerWidget {
   final String title;
@@ -45,7 +47,7 @@ class AppTopBar extends ConsumerWidget {
           const SizedBox(width: AppSpacing.lg),
           const _ConnectivityChip(),
           const SizedBox(width: AppSpacing.sm),
-          _notificationBell(context, c, unread: 3),
+          _notificationBell(context, ref, c, unread: ref.watch(unreadCountProvider)),
           const SizedBox(width: AppSpacing.sm),
           const _RoleSwitcher(),
         ],
@@ -73,7 +75,8 @@ class AppTopBar extends ConsumerWidget {
     );
   }
 
-  Widget _notificationBell(BuildContext context, AppColors c, {required int unread}) {
+  Widget _notificationBell(BuildContext context, WidgetRef ref, AppColors c,
+      {required int unread}) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -81,7 +84,7 @@ class AppTopBar extends ConsumerWidget {
           context,
           icon: Icons.notifications_none_rounded,
           tooltip: 'Notifications',
-          onTap: () {},
+          onTap: () => openNotificationPanel(context, ref),
         ),
         if (unread > 0)
           Positioned(
