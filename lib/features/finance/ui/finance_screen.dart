@@ -3,14 +3,19 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import 'finance_context_bar.dart';
+import 'expenses_tab.dart';
 import 'fees_setup_tab.dart';
 import 'record_payments_tab.dart';
+import 'special_fees_tab.dart';
 
 /// One Finance tab: label + view.
 class _FinanceTab {
   final String label;
   final Widget view;
-  const _FinanceTab(this.label, this.view);
+
+  /// Whether the shared class/term context bar applies to this tab.
+  final bool showContext;
+  const _FinanceTab(this.label, this.view, {this.showContext = true});
 }
 
 class FinanceScreen extends StatefulWidget {
@@ -25,13 +30,27 @@ class _FinanceScreenState extends State<FinanceScreen>
   static const List<_FinanceTab> _tabsSpec = [
     _FinanceTab('Fees Setup', FeesSetupTab()),
     _FinanceTab('Record Payments', RecordPaymentsTab()),
+    _FinanceTab('Special Fees', SpecialFeesTab(), showContext: false),
+    _FinanceTab('Expenses', ExpensesTab()),
   ];
 
   late final TabController _controller =
-      TabController(length: _tabsSpec.length, vsync: this);
+  TabController(length: _tabsSpec.length, vsync: this);
+
+  @override
+  void initState() {
+    super.initState();
+    // Rebuild when the tab changes so the shared context bar shows/hides.
+    _controller.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTabChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -61,16 +80,17 @@ class _FinanceScreenState extends State<FinanceScreen>
             ),
           ),
         ),
-        // Shared context bar under the tabs, above the tab content.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.lg,
-            AppSpacing.xl,
-            0,
+        // Shared context bar — only for tabs that use the class/term context.
+        if (_tabsSpec[_controller.index].showContext)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.lg,
+              AppSpacing.xl,
+              0,
+            ),
+            child: const FinanceContextBar(),
           ),
-          child: const FinanceContextBar(),
-        ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(

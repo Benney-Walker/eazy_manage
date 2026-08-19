@@ -24,7 +24,7 @@ class ApiException implements Exception {
   String toString() => 'ApiException($kind, $statusCode): $message';
 }
 
-typedef OnUnauthorized = void Function();
+typedef OnUnauthorized = void Function(bool refreshTokenRejected);
 
 typedef OnTokenRefreshed = void Function(String newAccessToken);
 
@@ -220,11 +220,18 @@ class ApiClient {
 
         final hardFailure = refresh.outcome == TokenRefreshOutcome.rejected ||
             refresh.outcome == TokenRefreshOutcome.noRefreshToken;
-        if (triggerLogoutOn401 && hardFailure) onUnauthorized?.call();
+        if (triggerLogoutOn401 && hardFailure) {
+          // Only a rejected refresh (the refresh token itself got a 401) is a
+          // genuine dead session that should clear storage.
+          onUnauthorized?.call(
+              refresh.outcome == TokenRefreshOutcome.rejected);
+        }
         throw ApiException(message, ApiFailureKind.unauthorized,
             statusCode: code);
       }
-      if (triggerLogoutOn401) onUnauthorized?.call();
+      // Already retried with a fresh token and still 401 — that's an
+      // access-token rejection, not a refresh-token rejection, so don't clear.
+      if (triggerLogoutOn401) onUnauthorized?.call(false);
       throw ApiException(message, ApiFailureKind.unauthorized, statusCode: code);
     }
     if (code == 403) {

@@ -159,15 +159,16 @@ class DashboardScreen extends ConsumerWidget {
 
   List<Widget> _metricsFor(AppRole role, AppColors c, DashboardData d) {
     String n(int? v) => v == null ? '—' : NumberFormat.decimalPattern().format(v);
-    String cedis(int? v) => v == null ? '—' : '₵${NumberFormat.decimalPattern().format(v)}';
+    String cedis(double? v) =>
+        v == null ? '—' : '₵${NumberFormat('#,##0.00').format(v)}';
 
     switch (role) {
       case AppRole.principal:
         return [
           AppMetricCard(icon: Icons.groups_rounded, label: 'Students', value: n(d.totalStudents)),
-          AppMetricCard(icon: Icons.badge_rounded, label: 'Staff', value: n(d.totalStaff), accent: c.info),
-          AppMetricCard(icon: Icons.school_rounded, label: 'Teaching Staff', value: n(d.totalTeachingStaff), accent: c.brand400),
-          AppMetricCard(icon: Icons.payments_rounded, label: 'Fees Collected', value: cedis(d.feesPaid), accent: c.success),
+          _staffCard(c, d),
+          _feesCard(c, d),
+          AppMetricCard(icon: Icons.receipt_long_rounded, label: 'Total Expenses', value: cedis(d.totalExpenses), accent: c.warning),
         ];
       case AppRole.administrator:
         return [
@@ -179,7 +180,7 @@ class DashboardScreen extends ConsumerWidget {
         return [
           AppMetricCard(icon: Icons.account_balance_wallet_rounded, label: 'Total Fees', value: cedis(d.totalFees)),
           AppMetricCard(icon: Icons.payments_rounded, label: 'Fees Collected', value: cedis(d.feesPaid), accent: c.success),
-          AppMetricCard(icon: Icons.groups_rounded, label: 'Students', value: n(d.totalStudents), accent: c.info),
+          AppMetricCard(icon: Icons.receipt_long_rounded, label: 'Total Expenses', value: cedis(d.totalExpenses), accent: c.warning),
         ];
       case AppRole.teachingStaff:
       case AppRole.generalStaff:
@@ -187,6 +188,117 @@ class DashboardScreen extends ConsumerWidget {
           AppMetricCard(icon: Icons.groups_rounded, label: 'Students', value: n(d.totalStudents)),
         ];
     }
+  }
+
+  /// Card shell matching AppMetricCard (icon plate + label header) with a
+  /// custom value area.
+  Widget _dashCardShell(
+      AppColors c, {
+        required IconData icon,
+        required Color iconColor,
+        required String label,
+        required Widget child,
+      }) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: c.border, width: AppStroke.hairline),
+        boxShadow: [
+          BoxShadow(color: c.shadow, blurRadius: 12, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  borderRadius: const BorderRadius.all(Radius.circular(9)),
+                ),
+                child: Icon(icon, size: 18, color: c.onBrand),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(label,
+                    style:
+                    AppTypography.bodyStrong.copyWith(color: c.textPrimary),
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          child,
+        ],
+      ),
+    );
+  }
+
+  /// Staff card: teaching staff as the headline, total staff beneath.
+  Widget _staffCard(AppColors c, DashboardData d) {
+    String n(int? v) =>
+        v == null ? '—' : NumberFormat.decimalPattern().format(v);
+    return _dashCardShell(
+      c,
+      icon: Icons.school_rounded,
+      iconColor: c.info,
+      label: 'Teaching Staff',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(n(d.totalTeachingStaff),
+              style: AppTypography.metric.copyWith(color: c.textPrimary)),
+          const SizedBox(height: AppSpacing.xs),
+          Text('${n(d.totalStaff)} total staff',
+              style: AppTypography.caption.copyWith(color: c.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  /// Fees card: amount collected, of the term total, with a % progress bar.
+  Widget _feesCard(AppColors c, DashboardData d) {
+    String cedis(double? v) =>
+        v == null ? '—' : '₵${NumberFormat('#,##0.00').format(v)}';
+    final total = d.totalFees ?? 0.0;
+    final paid = d.feesPaid ?? 0.0;
+    final ratio = (total > 0 ? paid / total : 0.0).clamp(0.0, 1.0).toDouble();
+    final pct = (ratio * 100).round();
+    return _dashCardShell(
+      c,
+      icon: Icons.payments_rounded,
+      iconColor: c.success,
+      label: 'Fees',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(cedis(d.feesPaid),
+              style: AppTypography.metric.copyWith(color: c.textPrimary)),
+          const SizedBox(height: AppSpacing.xs),
+          Text('collected of ${cedis(d.totalFees)}',
+              style: AppTypography.caption.copyWith(color: c.textSecondary)),
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(999)),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 6,
+              backgroundColor: c.border,
+              valueColor: AlwaysStoppedAnimation<Color>(c.success),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text('$pct% collected',
+              style: AppTypography.caption.copyWith(color: c.textSecondary)),
+        ],
+      ),
+    );
   }
 
   Widget _supportingSection(
@@ -228,6 +340,33 @@ class DashboardScreen extends ConsumerWidget {
     }
   }
 
+  Widget _guidanceCard(AppColors c) {
+    return AppCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.checklist_rounded, color: c.textSecondary, size: 20),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Your day',
+                    style:
+                    AppTypography.label.copyWith(color: c.textSecondary)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                    'Mark attendance, record conduct, and enter results for '
+                        'your class from the sidebar.',
+                    style: AppTypography.body.copyWith(color: c.textPrimary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _listCard(
       AppColors c, {
         required String title,
@@ -255,34 +394,6 @@ class DashboardScreen extends ConsumerWidget {
             )
           else
             ...rows.take(8).map((r) => _row(c, r, leadingIcon)),
-        ],
-      ),
-    );
-  }
-
-  Widget _guidanceCard(AppColors c) {
-    return AppCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.checklist_rounded, color: c.textSecondary, size: 20),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Your day',
-                    style:
-                    AppTypography.label.copyWith(color: c.textSecondary)),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                    'Mark attendance, record conduct, and enter results for '
-                        'your class from the sidebar.',
-                    style:
-                    AppTypography.body.copyWith(color: c.textPrimary)),
-              ],
-            ),
-          ),
         ],
       ),
     );

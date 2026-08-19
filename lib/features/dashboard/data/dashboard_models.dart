@@ -1,8 +1,3 @@
-/// Lightweight models for the dashboard. The count endpoints return a bare
-/// number as the response body (e.g. `1284`), so those don't need a model —
-/// the repository parses them to int directly. These types cover the list
-/// endpoints.
-
 /// A row in the "absent students today" list.
 class AbsentStudent {
   final String studentId;
@@ -16,10 +11,10 @@ class AbsentStudent {
   });
 
   factory AbsentStudent.fromJson(Map<String, dynamic> j) => AbsentStudent(
-        studentId: (j['studentId'] ?? '').toString(),
-        studentName: (j['studentName'] ?? j['fullName'] ?? '').toString(),
-        className: (j['className'] ?? j['levelName'] ?? '').toString(),
-      );
+    studentId: (j['studentId'] ?? '').toString(),
+    studentName: (j['studentName'] ?? j['fullName'] ?? '').toString(),
+    className: (j['className'] ?? j['levelName'] ?? '').toString(),
+  );
 }
 
 /// A recent fees transaction row.
@@ -35,10 +30,10 @@ class FeesTransaction {
   });
 
   factory FeesTransaction.fromJson(Map<String, dynamic> j) => FeesTransaction(
-        studentName: (j['studentName'] ?? j['payerName'] ?? '').toString(),
-        amount: (j['amount'] ?? j['amountPaid'] ?? '').toString(),
-        date: (j['date'] ?? j['paidAt'] ?? j['createdAt'] ?? '').toString(),
-      );
+    studentName: (j['studentName'] ?? j['payerName'] ?? '').toString(),
+    amount: (j['amount'] ?? j['amountPaid'] ?? '').toString(),
+    date: (j['date'] ?? j['paidAt'] ?? j['createdAt'] ?? '').toString(),
+  );
 }
 
 /// A recent system/audit log row.
@@ -54,10 +49,10 @@ class RecentLog {
   });
 
   factory RecentLog.fromJson(Map<String, dynamic> j) => RecentLog(
-        action: (j['action'] ?? j['message'] ?? j['description'] ?? '').toString(),
-        createdBy: (j['createdBy'] ?? j['actor'] ?? '').toString(),
-        date: (j['date'] ?? j['time'] ?? j['createdAt'] ?? '').toString(),
-      );
+    action: (j['action'] ?? j['message'] ?? j['description'] ?? '').toString(),
+    createdBy: (j['createdBy'] ?? j['actor'] ?? '').toString(),
+    date: (j['date'] ?? j['time'] ?? j['createdAt'] ?? '').toString(),
+  );
 }
 
 /// The full set of dashboard data for a role. Any field may be null when the
@@ -66,8 +61,9 @@ class DashboardData {
   final int? totalStudents;
   final int? totalStaff;
   final int? totalTeachingStaff;
-  final int? totalFees;
-  final int? feesPaid;
+  final double? totalFees;
+  final double? feesPaid;
+  final double? totalExpenses;
   final List<AbsentStudent> absentStudents;
   final List<FeesTransaction> recentTransactions;
   final List<RecentLog> recentLogs;
@@ -78,6 +74,7 @@ class DashboardData {
     this.totalTeachingStaff,
     this.totalFees,
     this.feesPaid,
+    this.totalExpenses,
     this.absentStudents = const [],
     this.recentTransactions = const [],
     this.recentLogs = const [],

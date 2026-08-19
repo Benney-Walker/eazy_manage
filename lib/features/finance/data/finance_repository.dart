@@ -100,4 +100,87 @@ class FinanceRepository {
       body: record.toUpdateJson(),
     );
   }
+
+  // ---- Special payments ---------------------------------------------------
+
+  Future<List<SpecialPaymentRecord>> loadSpecialFees(
+      SpecialPaymentType type) async {
+    try {
+      final res = await _api.get(
+        Endpoints.loadSpecialFees(type.backendValue),
+        triggerLogoutOn401: false,
+      );
+      final list = res.data;
+      if (list is List) {
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map(SpecialPaymentRecord.fromJson)
+            .toList();
+      }
+      return const [];
+    } on ApiException catch (e) {
+      // Backend returns 404 when there are none of this type yet.
+      if (e.statusCode == 404) return const [];
+      rethrow;
+    }
+  }
+
+  Future<void> addSpecialFee(NewSpecialPaymentRequest req) async {
+    await _api.post(Endpoints.addSpecialFee, body: req.toJson());
+  }
+
+  Future<void> updateSpecialFee(UpdateSpecialPaymentRequest req) async {
+    await _api.put(Endpoints.updateSpecialFee, body: req.toJson());
+  }
+
+  // ---- Expenses -----------------------------------------------------------
+
+  Future<List<ExpensesRecord>> readExpenses(String semesterId) async {
+    try {
+      final res = await _api.get(
+        Endpoints.readExpensesRecords(semesterId),
+        triggerLogoutOn401: false,
+      );
+      final list = res.data;
+      if (list is List) {
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map(ExpensesRecord.fromJson)
+            .toList();
+      }
+      return const [];
+    } on ApiException catch (e) {
+      // 404 = no expenses recorded for this term yet.
+      if (e.statusCode == 404) return const [];
+      rethrow;
+    }
+  }
+
+  Future<void> addExpense(NewExpensesRequest req) async {
+    await _api.post(Endpoints.addNewExpenses, body: req.toJson());
+  }
+
+  Future<void> updateExpense(UpdateExpensesRequest req) async {
+    await _api.put(Endpoints.updateExpenseRecord, body: req.toJson());
+  }
+
+  Future<double> totalExpenses() async {
+    try {
+      final res =
+      await _api.get(Endpoints.totalExpenses, triggerLogoutOn401: false);
+      final d = res.data;
+      if (d is num) return d.toDouble();
+      if (d is String) return double.tryParse(d) ?? 0;
+      if (d is Map) {
+        final v = d['total'] ?? d['totalExpenses'] ?? d['amount'];
+        if (v is num) return v.toDouble();
+        if (v is String) return double.tryParse(v) ?? 0;
+      }
+      return 0;
+    } on ApiException catch (e) {
+      // 404 = no expenses (or no current term) → treat as zero.
+      if (e.statusCode == 404) return 0;
+      rethrow;
+    }
+  }
 }

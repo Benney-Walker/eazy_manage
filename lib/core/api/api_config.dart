@@ -123,6 +123,24 @@ abstract final class Endpoints {
   static const String updateSemesterFees =
       '${ApiConfig.finance}${ApiConfig.v2}/update-semester-fees';
 
+  // ---- Finance: Special payments ----
+  static const String addSpecialFee =
+      '${ApiConfig.finance}${ApiConfig.v1}/add-special-fee';
+  static String loadSpecialFees(String paymentType) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/load-special-fees/$paymentType';
+  static const String updateSpecialFee =
+      '${ApiConfig.finance}${ApiConfig.v1}/update-special-fee';
+
+  // ---- Finance: Expenses ----
+  static const String addNewExpenses =
+      '${ApiConfig.finance}${ApiConfig.v1}/add-new-expenses';
+  static String readExpensesRecords(String semesterId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/read-expenses-records/$semesterId';
+  static const String totalExpenses =
+      '${ApiConfig.finance}${ApiConfig.v1}/total-expenses';
+  static const String updateExpenseRecord =
+      '${ApiConfig.finance}${ApiConfig.v1}/update-expense-record';
+
   // ---- Finance: Payments ----
   static const String addFeesPayment =
       '${ApiConfig.finance}${ApiConfig.v1}/add-fees-payment';
@@ -134,10 +152,10 @@ abstract final class Endpoints {
 
   // ---- Attendance (view-only) ----
   static String datesMarked(String levelId, String semesterId) =>
-  '${ApiConfig.student}${ApiConfig.v1}/dates-marked/$levelId/$semesterId';
+      '${ApiConfig.student}${ApiConfig.v1}/dates-marked/$levelId/$semesterId';
   static String attendanceRecords(String levelId, String semesterId, String date) =>
-  '${ApiConfig.student}${ApiConfig.v1}/attendance-records'
-  '?levelId=$levelId&semesterId=$semesterId&date=$date';
+      '${ApiConfig.student}${ApiConfig.v1}/attendance-records'
+          '?levelId=$levelId&semesterId=$semesterId&date=$date';
 
   // ---- Conduct ----
   static String conductRecords(String levelId, String semesterId) =>

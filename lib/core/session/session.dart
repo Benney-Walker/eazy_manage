@@ -104,12 +104,16 @@ class AuthController extends Notifier<AuthState> {
       // dashboard with a valid token in hand.
       final result = await _api.refreshNow();
       if (result.outcome == TokenRefreshOutcome.rejected) {
-        // The refresh token itself is invalid/expired → genuine sign-out.
+        // The refresh token itself was rejected (401) — a genuinely dead
+        // session. This is one of the only two cases that clears stored auth
+        // (the other being an explicit sign-out).
         _api.clearCredentials();
         await _repo.signOut();
         state = const AuthState.unauthenticated();
         return;
       }
+      // refreshed → we hold a fresh access token.
+      // unavailable (offline / transient) → stay signed in; nothing cleared.
 
     } else if (stored.token.isEmpty) {
       // No refresh token and no access token — nothing to sustain the session.
@@ -169,11 +173,11 @@ class AuthController extends Notifier<AuthState> {
     state = const AuthState.unauthenticated();
   }
 
-  void _onUnauthorized() {
-    // Fire-and-forget: clear storage and flip to unauthenticated. The router
-    // redirect reacts and sends the user to the login screen.
+  void _onUnauthorized(bool refreshTokenRejected) {
     _api.clearCredentials();
-    _repo.signOut();
+    if (refreshTokenRejected) {
+      _repo.signOut();
+    }
     state = const AuthState.unauthenticated();
   }
 

@@ -54,3 +54,27 @@ FutureProvider.autoDispose<List<PaymentRecord>>((ref) async {
     semesterId: semesterId,
   );
 });
+// ---- Special payments -----------------------------------------------------
+
+final specialTypeProvider =
+StateProvider<SpecialPaymentType>((ref) => SpecialPaymentType.stationary);
+
+final specialFeesProvider =
+FutureProvider.autoDispose<List<SpecialPaymentRecord>>((ref) async {
+  final type = ref.watch(specialTypeProvider);
+  return ref.watch(financeRepositoryProvider).loadSpecialFees(type);
+});
+
+// ---- Expenses -------------------------------------------------------------
+
+final expensesProvider =
+FutureProvider.autoDispose<List<ExpensesRecord>>((ref) async {
+  final semesterId = ref.watch(financeSemesterIdProvider);
+  if (semesterId == null) return const [];
+  return ref.watch(financeRepositoryProvider).readExpenses(semesterId);
+});
+
+/// Total expenses (school-wide, current term on the backend).
+final totalExpensesProvider = FutureProvider.autoDispose<double>((ref) async {
+  return ref.watch(financeRepositoryProvider).totalExpenses();
+});

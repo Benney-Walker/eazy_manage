@@ -25,22 +25,26 @@ class DashboardRepository {
   // ---- Role bundles -------------------------------------------------------
 
   Future<DashboardData> _principal() async {
-    final results = await Future.wait([
+    final counts = await Future.wait([
       _count(Endpoints.totalStudents),
       _count(Endpoints.totalStaff),
       _count(Endpoints.totalTeachingStaff),
-      _count(Endpoints.totalFees),
-      _count(Endpoints.feesPaid),
+    ]);
+    final money = await Future.wait([
+      _money(Endpoints.totalFees),
+      _money(Endpoints.feesPaid),
+      _money(Endpoints.totalExpenses),
     ]);
     // The principal's overview includes today's absentees (mirrors the JavaFX
     // principal dashboard, which loads absent-students).
     final absent = await _absentStudents();
     return DashboardData(
-      totalStudents: results[0],
-      totalStaff: results[1],
-      totalTeachingStaff: results[2],
-      totalFees: results[3],
-      feesPaid: results[4],
+      totalStudents: counts[0],
+      totalStaff: counts[1],
+      totalTeachingStaff: counts[2],
+      totalFees: money[0],
+      feesPaid: money[1],
+      totalExpenses: money[2],
       absentStudents: absent,
     );
   }
@@ -61,16 +65,16 @@ class DashboardRepository {
   }
 
   Future<DashboardData> _finance() async {
-    final counts = await Future.wait([
-      _count(Endpoints.totalFees),
-      _count(Endpoints.feesPaid),
-      _count(Endpoints.totalStudents),
+    final money = await Future.wait([
+      _money(Endpoints.totalFees),
+      _money(Endpoints.feesPaid),
+      _money(Endpoints.totalExpenses),
     ]);
     final txns = await _recentTransactions();
     return DashboardData(
-      totalFees: counts[0],
-      feesPaid: counts[1],
-      totalStudents: counts[2],
+      totalFees: money[0],
+      feesPaid: money[1],
+      totalExpenses: money[2],
       recentTransactions: txns,
     );
   }
@@ -98,6 +102,22 @@ class DashboardRepository {
       return int.tryParse(s);
     } on ApiException {
       // A single failing stat shouldn't blow up the whole dashboard.
+      return null;
+    }
+  }
+
+  /// Fetch a money total as a double, keeping decimals (pesewas). Unlike
+  /// [_count] this never strips the decimal point. A 404 (e.g. the backend's
+  /// "no expenses yet" / "no current term" responses) is treated as "unknown"
+  /// so the card shows a dash rather than a wrong figure.
+  Future<double?> _money(String path) async {
+    try {
+      final res = await _api.get(path, triggerLogoutOn401: false);
+      final body = res.data;
+      if (body is num) return body.toDouble();
+      if (body is String) return double.tryParse(body.trim());
+      return null;
+    } on ApiException {
       return null;
     }
   }
