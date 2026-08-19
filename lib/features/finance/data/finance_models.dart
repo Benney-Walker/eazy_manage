@@ -26,8 +26,6 @@ class FeesDetails {
     levelId: (j['levelId'] ?? '').toString(),
   );
 
-  /// Body for `PUT /finance/v2/update-semester-fees`.
-  /// Note: the update endpoint calls the class field `classId`, not `levelId`.
   Map<String, dynamic> toUpdateJson(String newAmount) => {
     'feesId': feesId,
     'amount': newAmount,
@@ -234,7 +232,6 @@ class ExpensesRecord {
   final double amountSpent;
   final String extraInfo;
   final String expenseDate;
-  final String semesterId;
 
   const ExpensesRecord({
     required this.expensesId,
@@ -242,7 +239,6 @@ class ExpensesRecord {
     required this.amountSpent,
     required this.extraInfo,
     required this.expenseDate,
-    required this.semesterId,
   });
 
   factory ExpensesRecord.fromJson(Map<String, dynamic> j) => ExpensesRecord(
@@ -251,7 +247,6 @@ class ExpensesRecord {
     amountSpent: (j['amountSpent'] as num?)?.toDouble() ?? 0,
     extraInfo: (j['extraInfo'] ?? '').toString(),
     expenseDate: (j['expenseDate'] ?? '').toString(),
-    semesterId: (j['semesterId'] ?? '').toString(),
   );
 }
 
