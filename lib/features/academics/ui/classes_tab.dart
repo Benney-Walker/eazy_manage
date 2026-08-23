@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -134,7 +135,7 @@ class _ClassEditorState extends ConsumerState<_ClassEditor> {
     setState(() => _loading = true);
     try {
       final d =
-          await ref.read(academicsRepositoryProvider).findClass(widget.levelId!);
+      await ref.read(academicsRepositoryProvider).findClass(widget.levelId!);
       _name.text = d.levelName;
       _instructorId = d.staffId.isEmpty ? null : d.staffId;
     } on ApiException catch (e) {
@@ -178,19 +179,26 @@ class _ClassEditorState extends ConsumerState<_ClassEditor> {
       if (!mounted) return;
       await refreshClasses(ref);
       if (!mounted) return;
+      notify(ref, context,
+          action: _isEdit ? 'Update class' : 'Add class',
+          message: _isEdit ? 'Class updated.' : 'Class added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Class updated.' : 'Class added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update class' : 'Add class', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update class' : 'Add class', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
@@ -205,77 +213,77 @@ class _ClassEditorState extends ConsumerState<_ClassEditor> {
       icon: Icons.class_rounded,
       child: _loading
           ? const SizedBox(
-              height: 160, child: Center(child: CircularProgressIndicator()))
+          height: 160, child: Center(child: CircularProgressIndicator()))
           : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppTextField(
-                  label: 'Class name',
-                  hint: 'e.g. Basic 4',
-                  controller: _name,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                staffAsync.when(
-                  loading: () => AcademicsDropdown<String>(
-                    label: 'Instructor',
-                    value: null,
-                    items: const [],
-                    onChanged: (_) {},
-                    hint: 'Loading staff…',
-                  ),
-                  error: (_, __) => AcademicsDropdown<String>(
-                    label: 'Instructor',
-                    value: null,
-                    items: const [],
-                    onChanged: (_) {},
-                    hint: 'Staff unavailable',
-                  ),
-                  data: (staff) {
-                    final valid =
-                        staff.any((s) => s.staffId == _instructorId)
-                            ? _instructorId
-                            : null;
-                    return AcademicsDropdown<String>(
-                      label: 'Instructor',
-                      value: valid,
-                      hint: 'Select instructor',
-                      items: [
-                        for (final StaffSummary s in staff)
-                          DropdownMenuItem(
-                            value: s.staffId,
-                            child: Text(
-                              s.staffName,
-                              style: AppTypography.body
-                                  .copyWith(color: c.textPrimary),
-                            ),
-                          ),
-                      ],
-                      onChanged: (v) => setState(() => _instructorId = v),
-                    );
-                  },
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  AcademicsInlineError(message: _error!),
-                ],
-                const SizedBox(height: AppSpacing.xl),
-                Row(children: [
-                  const Spacer(),
-                  AppButton.ghost(
-                    label: 'Cancel',
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  AppButton.primary(
-                    label: _isEdit ? 'Save changes' : 'Add class',
-                    busy: _saving,
-                    onPressed: _save,
-                  ),
-                ]),
-              ],
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppTextField(
+            label: 'Class name',
+            hint: 'e.g. Basic 4',
+            controller: _name,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          staffAsync.when(
+            loading: () => AcademicsDropdown<String>(
+              label: 'Instructor',
+              value: null,
+              items: const [],
+              onChanged: (_) {},
+              hint: 'Loading staff…',
             ),
+            error: (_, __) => AcademicsDropdown<String>(
+              label: 'Instructor',
+              value: null,
+              items: const [],
+              onChanged: (_) {},
+              hint: 'Staff unavailable',
+            ),
+            data: (staff) {
+              final valid =
+              staff.any((s) => s.staffId == _instructorId)
+                  ? _instructorId
+                  : null;
+              return AcademicsDropdown<String>(
+                label: 'Instructor',
+                value: valid,
+                hint: 'Select instructor',
+                items: [
+                  for (final StaffSummary s in staff)
+                    DropdownMenuItem(
+                      value: s.staffId,
+                      child: Text(
+                        s.staffName,
+                        style: AppTypography.body
+                            .copyWith(color: c.textPrimary),
+                      ),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _instructorId = v),
+              );
+            },
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            AcademicsInlineError(message: _error!),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+          Row(children: [
+            const Spacer(),
+            AppButton.ghost(
+              label: 'Cancel',
+              onPressed:
+              _saving ? null : () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            AppButton.primary(
+              label: _isEdit ? 'Save changes' : 'Add class',
+              busy: _saving,
+              onPressed: _save,
+            ),
+          ]),
+        ],
+      ),
     );
   }
 }
