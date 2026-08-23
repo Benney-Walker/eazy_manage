@@ -12,45 +12,34 @@ class FinanceRepository {
 
   // ---- Fees Setup ---------------------------------------------------------
 
-  Future<FeesDetails?> fetchFeesDetails({
-    required String semesterId,
-    required String levelId,
-  }) async {
+  Future<List<FeesDetails>> fetchFeesDetails(String semesterId) async {
     try {
       final res = await _api.get(
-        Endpoints.fetchFeesDetails(semesterId, levelId),
+        Endpoints.fetchFeesDetails(semesterId),
         triggerLogoutOn401: false,
       );
-      final data = res.data;
-      if (data is Map<String, dynamic>) {
-        final fees = FeesDetails.fromJson(data);
-        return fees.exists ? fees : null;
+      final list = res.data;
+      if (list is List) {
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map(FeesDetails.fromJson)
+            .toList();
       }
-      return null;
+      return const [];
     } on ApiException catch (e) {
-      // No fee set yet is commonly a 404 — treat that as "not configured"
-      // rather than surfacing an error state.
-      if (e.statusCode == 404) return null;
+      // No fees set for the term yet is commonly a 404 — treat as empty.
+      if (e.statusCode == 404) return const [];
       rethrow;
     }
   }
 
   /// POST /finance/v2/new-fees?classId=&semesterId=&feesAmount= (no body).
-  Future<void> addFees({
-    required String classId,
-    required String semesterId,
-    required String feesAmount,
-  }) async {
-    final path = Endpoints.newFees(
-      Uri.encodeQueryComponent(classId),
-      Uri.encodeQueryComponent(semesterId),
-      Uri.encodeQueryComponent(feesAmount),
-    );
-    await _api.post(path);
+  Future<void> addFees(NewFeesRequest req) async {
+    await _api.post(Endpoints.newFees, body: req.toJson());
   }
 
   /// PUT /finance/v2/update-semester-fees.
-  Future<void> updateFees(FeesDetails existing, String newAmount) async {
+  Future<void> updateFees(FeesDetails existing, double newAmount) async {
     await _api.put(
       Endpoints.updateSemesterFees,
       body: existing.toUpdateJson(newAmount),

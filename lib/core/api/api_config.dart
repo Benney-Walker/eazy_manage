@@ -117,11 +117,9 @@ abstract final class Endpoints {
       '${ApiConfig.admin}${ApiConfig.v1}/update-holiday';
 
   // ---- Finance: Fees Setup ----
-  static String fetchFeesDetails(String semesterId, String levelId) =>
-      '${ApiConfig.finance}${ApiConfig.v1}/fetch-fees-details/$semesterId/$levelId';
-  static String newFees(String classId, String semesterId, String feesAmount) =>
-      '${ApiConfig.finance}${ApiConfig.v2}/new-fees'
-          '?classId=$classId&semesterId=$semesterId&feesAmount=$feesAmount';
+  static String fetchFeesDetails(String semesterId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/fetch-fees-details/$semesterId';
+  static const String newFees = '${ApiConfig.finance}${ApiConfig.v2}/new-fees';
   static const String updateSemesterFees =
       '${ApiConfig.finance}${ApiConfig.v2}/update-semester-fees';
 
@@ -222,4 +220,3 @@ abstract final class Endpoints {
   static String generateReportCard(String studentId, String semesterId) =>
       '${ApiConfig.student}${ApiConfig.v3}/generate-report-card?studentId=$studentId&semesterId=$semesterId';
 }
-

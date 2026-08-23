@@ -4,33 +4,53 @@
 
 class FeesDetails {
   final int feesId;
-  final String amount;
+  final double amount;
   final String semesterId;
-  final String levelId;
+  final String levelName;
 
   const FeesDetails({
     required this.feesId,
     required this.amount,
     required this.semesterId,
-    required this.levelId,
+    required this.levelName,
   });
-
-  bool get exists => feesId != 0 && amount.isNotEmpty;
 
   factory FeesDetails.fromJson(Map<String, dynamic> j) => FeesDetails(
     feesId: (j['feesId'] is num)
         ? (j['feesId'] as num).toInt()
         : int.tryParse('${j['feesId']}') ?? 0,
-    amount: (j['amount'] ?? '').toString(),
+    amount: (j['amount'] as num?)?.toDouble() ?? 0,
     semesterId: (j['semesterId'] ?? '').toString(),
-    levelId: (j['levelId'] ?? '').toString(),
+    levelName: (j['levelName'] ?? '').toString(),
   );
 
-  Map<String, dynamic> toUpdateJson(String newAmount) => {
+  /// Body for `PUT /finance/v2/update-semester-fees`. The fee is identified by
+  /// [feesId]; [newAmount] is the new value.
+  Map<String, dynamic> toUpdateJson(double newAmount) => {
     'feesId': feesId,
     'amount': newAmount,
     'semesterId': semesterId,
-    'classId': levelId,
+    'levelName': levelName,
+  };
+}
+
+/// Body for `POST /finance/v2/new-fees` — set one amount for several classes at
+/// once (different classes often share the same fee).
+class NewFeesRequest {
+  final String semesterId;
+  final List<String> levelIds;
+  final double feesAmount;
+
+  const NewFeesRequest({
+    required this.semesterId,
+    required this.levelIds,
+    required this.feesAmount,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'semesterId': semesterId,
+    'levelIds': levelIds,
+    'feesAmount': feesAmount,
   };
 }
 
@@ -232,6 +252,7 @@ class ExpensesRecord {
   final double amountSpent;
   final String extraInfo;
   final String expenseDate;
+  final String semesterId;
 
   const ExpensesRecord({
     required this.expensesId,
@@ -239,6 +260,7 @@ class ExpensesRecord {
     required this.amountSpent,
     required this.extraInfo,
     required this.expenseDate,
+    required this.semesterId,
   });
 
   factory ExpensesRecord.fromJson(Map<String, dynamic> j) => ExpensesRecord(
@@ -247,6 +269,7 @@ class ExpensesRecord {
     amountSpent: (j['amountSpent'] as num?)?.toDouble() ?? 0,
     extraInfo: (j['extraInfo'] ?? '').toString(),
     expenseDate: (j['expenseDate'] ?? '').toString(),
+    semesterId: (j['semesterId'] ?? '').toString(),
   );
 }
 

@@ -25,13 +25,10 @@ final financeContextReadyProvider = Provider<bool>((ref) {
 
 /// The fee for the current class + semester (null = not configured yet).
 final feesDetailsProvider =
-FutureProvider.autoDispose<FeesDetails?>((ref) async {
-  final levelId = ref.watch(financeLevelIdProvider);
+FutureProvider.autoDispose<List<FeesDetails>>((ref) async {
   final semesterId = ref.watch(financeSemesterIdProvider);
-  if (levelId == null || semesterId == null) return null;
-  return ref
-      .watch(financeRepositoryProvider)
-      .fetchFeesDetails(semesterId: semesterId, levelId: levelId);
+  if (semesterId == null) return const [];
+  return ref.watch(financeRepositoryProvider).fetchFeesDetails(semesterId);
 });
 
 // ---- Payments -------------------------------------------------------------
@@ -56,9 +53,11 @@ FutureProvider.autoDispose<List<PaymentRecord>>((ref) async {
 });
 // ---- Special payments -----------------------------------------------------
 
+/// The payment type currently being viewed on the Special Fees tab.
 final specialTypeProvider =
 StateProvider<SpecialPaymentType>((ref) => SpecialPaymentType.stationary);
 
+/// Special-payment rows for the selected type.
 final specialFeesProvider =
 FutureProvider.autoDispose<List<SpecialPaymentRecord>>((ref) async {
   final type = ref.watch(specialTypeProvider);
@@ -67,6 +66,7 @@ FutureProvider.autoDispose<List<SpecialPaymentRecord>>((ref) async {
 
 // ---- Expenses -------------------------------------------------------------
 
+/// Expense rows for the current term (null term = nothing to show).
 final expensesProvider =
 FutureProvider.autoDispose<List<ExpensesRecord>>((ref) async {
   final semesterId = ref.watch(financeSemesterIdProvider);

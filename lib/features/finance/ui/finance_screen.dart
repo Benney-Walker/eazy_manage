@@ -28,7 +28,7 @@ class FinanceScreen extends StatefulWidget {
 class _FinanceScreenState extends State<FinanceScreen>
     with SingleTickerProviderStateMixin {
   static const List<_FinanceTab> _tabsSpec = [
-    _FinanceTab('Fees Setup', FeesSetupTab()),
+    _FinanceTab('Fees Setup', FeesSetupTab(), showContext: false),
     _FinanceTab('Record Payments', RecordPaymentsTab()),
     _FinanceTab('Special Fees', SpecialFeesTab(), showContext: false),
     _FinanceTab('Expenses', ExpensesTab()),
