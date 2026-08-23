@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -74,7 +75,7 @@ class GradingTab extends ConsumerWidget {
                     icon: Icons.grading_rounded,
                     title: 'No grading criteria yet',
                     subtitle:
-                        'Add score bands (e.g. 80–100 = A) so results can be graded.',
+                    'Add score bands (e.g. 80–100 = A) so results can be graded.',
                   );
                 }
                 return AcademicsListCard(
@@ -209,19 +210,26 @@ class _GradingEditorState extends ConsumerState<_GradingEditor> {
       await ref.read(academicsRepositoryProvider).saveGradingCriteria(payload);
       if (!mounted) return;
       ref.invalidate(gradingCriteriaProvider);
+      notify(ref, context,
+          action: _isEdit ? 'Update band' : 'Add band',
+          message: _isEdit ? 'Band updated.' : 'Band added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Band updated.' : 'Band added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update band' : 'Add band', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update band' : 'Add band', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
