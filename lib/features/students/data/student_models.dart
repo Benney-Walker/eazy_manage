@@ -116,9 +116,6 @@ class StudentDetail {
       );
 }
 
-/// Payload for `POST /student/v1/add-new-student`. Note the backend uses
-/// `levelId`, `hometown` (lowercase t), and `guardianContact` here — distinct
-/// from the update endpoint's field names.
 class NewStudentRequest {
   final String firstName;
   final String lastName;
