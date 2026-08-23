@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/widgets/app_button.dart';
@@ -80,22 +81,21 @@ class _DownloadPdfButtonState extends ConsumerState<DownloadPdfButton> {
       if (!mounted) return;
       setState(() => _busy = false);
       if (result == PdfSaveResult.saved) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report saved.')),
-        );
+        notify(ref, context,
+            action: 'Download report', message: 'Report saved.');
       }
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Download failed: ${e.message}')),
-      );
+      notify(ref, context,
+          action: 'Download report',
+          message: 'Download failed: ${e.message}', isError: true);
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not download the report.')),
-      );
+      notify(ref, context,
+          action: 'Download report',
+          message: 'Could not download the report.', isError: true);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/session/session.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -98,19 +99,26 @@ class _EnrollStaffSheetState extends ConsumerState<EnrollStaffSheet> {
       await ref.read(staffRepositoryProvider).enrollStaff(req);
       if (!mounted) return;
       ref.invalidate(staffRosterProvider);
+      notify(ref, context,
+          action: 'Enroll staff',
+          message: '${req.firstName} ${req.lastName} enrolled.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${req.firstName} ${req.lastName} enrolled.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Enroll staff', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not enroll staff. Try again.';
+      notify(ref, context,
+          action: 'Enroll staff', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not enroll staff. Try again.';
+        _error = msg;
       });
     }
   }
@@ -230,7 +238,7 @@ class _EnrollStaffSheetState extends ConsumerState<EnrollStaffSheet> {
                     AppButton.ghost(
                       label: 'Cancel',
                       onPressed:
-                          _saving ? null : () => Navigator.of(context).pop(),
+                      _saving ? null : () => Navigator.of(context).pop(),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     AppButton.primary(

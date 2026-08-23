@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/session/session.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -53,6 +54,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (err != null) {
+      notify(ref, context,
+          action: 'Sign in', message: err, isError: true, showSnackbar: false);
       setState(() => _error = err);
     }
     // On success the router redirect swaps us into the shell automatically.

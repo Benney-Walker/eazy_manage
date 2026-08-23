@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -25,9 +26,9 @@ class ConductEditorSheet extends ConsumerStatefulWidget {
 class _ConductEditorSheetState extends ConsumerState<ConductEditorSheet> {
   late StudentConductRecord _draft = widget.record;
   late final TextEditingController _remark =
-      TextEditingController(text: widget.record.conductRemark);
+  TextEditingController(text: widget.record.conductRemark);
   late final TextEditingController _peculiar =
-      TextEditingController(text: widget.record.peculiarIssue);
+  TextEditingController(text: widget.record.peculiarIssue);
 
   bool _saving = false;
   String? _error;
@@ -55,19 +56,24 @@ class _ConductEditorSheetState extends ConsumerState<ConductEditorSheet> {
       if (!mounted) return;
       // Local-first: the write is durably queued (and pushing now if online).
       ref.invalidate(conductRecordsProvider);
+      notify(ref, context, action: 'Save conduct', message: 'Conduct saved.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Conduct saved.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Save conduct', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: 'Save conduct', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
@@ -178,8 +184,8 @@ class _RubricGrid extends StatelessWidget {
 
   Widget _ratingChip(AppColors c,
       {required String label,
-      required bool selected,
-      required VoidCallback onTap}) {
+        required bool selected,
+        required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

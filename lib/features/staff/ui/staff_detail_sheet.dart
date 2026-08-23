@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -102,16 +103,23 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
         _saving = false;
         _mode = _Mode.view;
       });
-      _toast('Staff updated.');
+      _toast('Update staff', 'Staff updated.');
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Update staff', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save changes. Try again.';
+      notify(ref, context,
+          action: 'Update staff', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save changes. Try again.';
+        _error = msg;
       });
     }
   }
@@ -133,9 +141,9 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
     });
     try {
       await ref.read(staffRepositoryProvider).resetPassword(
-            targetStaffId: widget.staffId,
-            newPassword: pw,
-          );
+        targetStaffId: widget.staffId,
+        newPassword: pw,
+      );
       if (!mounted) return;
       setState(() {
         _saving = false;
@@ -143,24 +151,30 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
       });
       _newPassword.clear();
       _confirmPassword.clear();
-      _toast('Password reset.');
+      _toast('Reset password', 'Password reset.');
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Reset password', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not reset password. Try again.';
+      notify(ref, context,
+          action: 'Reset password', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not reset password. Try again.';
+        _error = msg;
       });
     }
   }
 
-  void _toast(String msg) {
+  void _toast(String action, String msg) {
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(msg)));
+      notify(ref, context, action: action, message: msg);
     }
   }
 
@@ -257,7 +271,7 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
         const SizedBox(height: AppSpacing.lg),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(child: _dropdown(c, 'Gender', _gender, const ['MALE', 'FEMALE'],
-              (v) => setState(() => _gender = v ?? ''))),
+                  (v) => setState(() => _gender = v ?? ''))),
           const SizedBox(width: AppSpacing.lg),
           Expanded(child: AppTextField(label: 'Date of birth (YYYY-MM-DD)', controller: _dob)),
         ]),
@@ -269,7 +283,7 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
         ]),
         const SizedBox(height: AppSpacing.lg),
         _dropdown(c, 'Status', _status, StaffStatus.all,
-            (v) => setState(() => _status = v ?? '')),
+                (v) => setState(() => _status = v ?? '')),
         const SizedBox(height: AppSpacing.lg),
         Text('Roles', style: AppTypography.label.copyWith(color: c.textSecondary)),
         const SizedBox(height: AppSpacing.sm),
@@ -612,7 +626,7 @@ class _StaffDetailSheetState extends ConsumerState<StaffDetailSheet> {
 
   String _initials(String name) {
     final parts =
-        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1)).toUpperCase();

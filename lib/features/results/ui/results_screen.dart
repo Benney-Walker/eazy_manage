@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/connectivity/connectivity_providers.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -89,22 +90,26 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
         _dirty = false;
       });
       final online = ref.read(isOnlineProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(online
-              ? 'Scores saved.'
-              : 'Scores saved — will sync when back online.'),
-        ),
-      );
+      final msg = online
+          ? 'Scores saved.'
+          : 'Scores saved — will sync when back online.';
+      notify(ref, context, action: 'Save scores', message: msg);
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Save scores', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: 'Save scores', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }

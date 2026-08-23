@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/connectivity/connectivity_providers.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -288,25 +289,31 @@ class _PaymentEditorState extends ConsumerState<_PaymentEditor> {
       }
       if (!mounted) return;
       ref.invalidate(paymentRecordsProvider);
-      Navigator.of(context).pop();
       final online = ref.read(isOnlineProvider);
       final verb = _isEdit ? 'updated' : 'recorded';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(online
-              ? 'Payment $verb.'
-              : 'Payment $verb — will sync when back online.'),
-        ),
-      );
+      final msg = online
+          ? 'Payment $verb.'
+          : 'Payment $verb — will sync when back online.';
+      notify(ref, context,
+          action: _isEdit ? 'Update payment' : 'Record payment',
+          message: msg);
+      Navigator.of(context).pop();
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update payment' : 'Record payment', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update payment' : 'Record payment', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }

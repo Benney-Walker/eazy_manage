@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -93,19 +94,25 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
         _editing = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Student updated.')),
-        );
+        notify(ref, context,
+            action: 'Update student', message: 'Student updated.');
       }
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Update student', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save changes. Try again.';
+      notify(ref, context,
+          action: 'Update student', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save changes. Try again.';
+        _error = msg;
       });
     }
   }

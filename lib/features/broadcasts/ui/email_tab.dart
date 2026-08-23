@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -53,12 +54,12 @@ class _EmailTabState extends ConsumerState<EmailTab> {
     });
     try {
       await ref.read(broadcastRepositoryProvider).sendEmail(
-            BroadcastEmailRequest(
-              subject: _subject.text.trim(),
-              body: _body.text.trim(),
-              audience: _audience.toList(),
-            ),
-          );
+        BroadcastEmailRequest(
+          subject: _subject.text.trim(),
+          body: _body.text.trim(),
+          audience: _audience.toList(),
+        ),
+      );
       if (!mounted) return;
       setState(() {
         _sending = false;
@@ -66,18 +67,24 @@ class _EmailTabState extends ConsumerState<EmailTab> {
         _body.clear();
         _audience = {};
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email broadcast sent.')),
-      );
+      notify(ref, context,
+          action: 'Send email broadcast', message: 'Email broadcast sent.');
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Send email broadcast', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _sending = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not send. Try again.';
+      notify(ref, context,
+          action: 'Send email broadcast', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _sending = false;
-        _error = 'Could not send. Try again.';
+        _error = msg;
       });
     }
   }
@@ -127,11 +134,11 @@ class _EmailTabState extends ConsumerState<EmailTab> {
                     onPressed: _sending
                         ? null
                         : () => setState(() {
-                              _subject.clear();
-                              _body.clear();
-                              _audience = {};
-                              _error = null;
-                            }),
+                      _subject.clear();
+                      _body.clear();
+                      _audience = {};
+                      _error = null;
+                    }),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   AppButton.primary(

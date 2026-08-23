@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -47,29 +48,35 @@ class _SmsTabState extends ConsumerState<SmsTab> {
     });
     try {
       await ref.read(broadcastRepositoryProvider).sendSms(
-            BroadcastSmsRequest(
-              message: _message.text.trim(),
-              audience: _audience.toList(),
-            ),
-          );
+        BroadcastSmsRequest(
+          message: _message.text.trim(),
+          audience: _audience.toList(),
+        ),
+      );
       if (!mounted) return;
       setState(() {
         _sending = false;
         _message.clear();
         _audience = {};
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('SMS broadcast sent.')),
-      );
+      notify(ref, context,
+          action: 'Send SMS broadcast', message: 'SMS broadcast sent.');
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Send SMS broadcast', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _sending = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not send. Try again.';
+      notify(ref, context,
+          action: 'Send SMS broadcast', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _sending = false;
-        _error = 'Could not send. Try again.';
+        _error = msg;
       });
     }
   }
@@ -121,10 +128,10 @@ class _SmsTabState extends ConsumerState<SmsTab> {
                     onPressed: _sending
                         ? null
                         : () => setState(() {
-                              _message.clear();
-                              _audience = {};
-                              _error = null;
-                            }),
+                      _message.clear();
+                      _audience = {};
+                      _error = null;
+                    }),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   AppButton.primary(

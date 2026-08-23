@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -219,19 +220,26 @@ class _FeesEditorState extends ConsumerState<_FeesEditor> {
       }
       if (!mounted) return;
       ref.invalidate(feesDetailsProvider);
+      notify(ref, context,
+          action: _isEdit ? 'Update fee' : 'Set fee',
+          message: _isEdit ? 'Fee updated.' : 'Fee set.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Fee updated.' : 'Fee set.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update fee' : 'Set fee', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update fee' : 'Set fee', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
