@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -189,19 +190,29 @@ class _SpecialFeeAddState extends ConsumerState<_SpecialFeeAdd> {
       // Show the type we just added so it appears in the list.
       ref.read(specialTypeProvider.notifier).state = _type;
       ref.invalidate(specialFeesProvider);
+      notify(ref, context,
+          action: 'Add special fee', message: 'Special fee added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Special fee added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Add special fee',
+          message: e.message,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: 'Add special fee',
+          message: msg,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
@@ -345,19 +356,29 @@ class _SpecialFeeEditState extends ConsumerState<_SpecialFeeEdit> {
       );
       if (!mounted) return;
       ref.invalidate(specialFeesProvider);
+      notify(ref, context,
+          action: 'Update special fee', message: 'Special fee updated.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Special fee updated.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Update special fee',
+          message: e.message,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: 'Update special fee',
+          message: msg,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
