@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -68,7 +69,7 @@ class SubjectsTab extends ConsumerWidget {
                         ),
                     ],
                     onChanged: (v) =>
-                        ref.read(subjectsClassProvider.notifier).state = v,
+                    ref.read(subjectsClassProvider.notifier).state = v,
                   ),
                 ),
               ),
@@ -257,19 +258,26 @@ class _SubjectEditorState extends ConsumerState<_SubjectEditor> {
       }
       if (!mounted) return;
       ref.invalidate(subjectsProvider);
+      notify(ref, context,
+          action: _isEdit ? 'Update subject' : 'Add subject',
+          message: _isEdit ? 'Subject updated.' : 'Subject added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Subject updated.' : 'Subject added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update subject' : 'Add subject', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update subject' : 'Add subject', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
@@ -284,76 +292,76 @@ class _SubjectEditorState extends ConsumerState<_SubjectEditor> {
       icon: Icons.menu_book_rounded,
       child: _loading
           ? const SizedBox(
-              height: 160, child: Center(child: CircularProgressIndicator()))
+          height: 160, child: Center(child: CircularProgressIndicator()))
           : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppTextField(
-                  label: 'Subject name',
-                  hint: 'e.g. Integrated Science',
-                  controller: _name,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                classesAsync.when(
-                  loading: () => AcademicsDropdown<String>(
-                    label: 'Class',
-                    value: null,
-                    items: const [],
-                    onChanged: (_) {},
-                    hint: 'Loading classes…',
-                  ),
-                  error: (_, __) => AcademicsDropdown<String>(
-                    label: 'Class',
-                    value: null,
-                    items: const [],
-                    onChanged: (_) {},
-                    hint: 'Classes unavailable',
-                  ),
-                  data: (classes) {
-                    final valid = classes.any((cl) => cl.levelId == _levelId)
-                        ? _levelId
-                        : null;
-                    return AcademicsDropdown<String>(
-                      label: 'Class',
-                      value: valid,
-                      hint: 'Select class',
-                      items: [
-                        for (final cls in classes)
-                          DropdownMenuItem(
-                            value: cls.levelId,
-                            child: Text(
-                              cls.levelName,
-                              style: AppTypography.body
-                                  .copyWith(color: c.textPrimary),
-                            ),
-                          ),
-                      ],
-                      onChanged: (v) => setState(() => _levelId = v),
-                    );
-                  },
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  AcademicsInlineError(message: _error!),
-                ],
-                const SizedBox(height: AppSpacing.xl),
-                Row(children: [
-                  const Spacer(),
-                  AppButton.ghost(
-                    label: 'Cancel',
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  AppButton.primary(
-                    label: _isEdit ? 'Save changes' : 'Add subject',
-                    busy: _saving,
-                    onPressed: _save,
-                  ),
-                ]),
-              ],
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppTextField(
+            label: 'Subject name',
+            hint: 'e.g. Integrated Science',
+            controller: _name,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          classesAsync.when(
+            loading: () => AcademicsDropdown<String>(
+              label: 'Class',
+              value: null,
+              items: const [],
+              onChanged: (_) {},
+              hint: 'Loading classes…',
             ),
+            error: (_, __) => AcademicsDropdown<String>(
+              label: 'Class',
+              value: null,
+              items: const [],
+              onChanged: (_) {},
+              hint: 'Classes unavailable',
+            ),
+            data: (classes) {
+              final valid = classes.any((cl) => cl.levelId == _levelId)
+                  ? _levelId
+                  : null;
+              return AcademicsDropdown<String>(
+                label: 'Class',
+                value: valid,
+                hint: 'Select class',
+                items: [
+                  for (final cls in classes)
+                    DropdownMenuItem(
+                      value: cls.levelId,
+                      child: Text(
+                        cls.levelName,
+                        style: AppTypography.body
+                            .copyWith(color: c.textPrimary),
+                      ),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _levelId = v),
+              );
+            },
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            AcademicsInlineError(message: _error!),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+          Row(children: [
+            const Spacer(),
+            AppButton.ghost(
+              label: 'Cancel',
+              onPressed:
+              _saving ? null : () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            AppButton.primary(
+              label: _isEdit ? 'Save changes' : 'Add subject',
+              busy: _saving,
+              onPressed: _save,
+            ),
+          ]),
+        ],
+      ),
     );
   }
 }
