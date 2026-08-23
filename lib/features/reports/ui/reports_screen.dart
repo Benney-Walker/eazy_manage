@@ -12,6 +12,7 @@ import 'reports/master_sheet_report.dart';
 import 'reports/report_card_report.dart';
 import 'reports/sba_report.dart';
 import 'reports/student_payments_report.dart';
+import 'reports/expenses_report.dart';
 
 /// The Reporting Center. Shows the reports available to the current role as a
 /// grid of cards; tapping one opens that report inline (with a back button).
@@ -37,6 +38,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       'report-card' => const ReportCardReport(),
       'grade-payments' => const GradePaymentsReport(),
       'student-payments' => const StudentPaymentsReport(),
+      'expenses-report' => const ExpensesReport(),
       _ => const SizedBox.shrink(),
     };
   }
@@ -57,7 +59,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     }
 
     final reports =
-        role == null ? <ReportDefinition>[] : ReportCatalogue.reportsFor(role);
+    role == null ? <ReportDefinition>[] : ReportCatalogue.reportsFor(role);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -84,7 +86,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   for (final r in reports)
                     SizedBox(
                       width: (constraints.maxWidth -
-                              (cols - 1) * AppSpacing.lg) /
+                          (cols - 1) * AppSpacing.lg) /
                           cols,
                       child: _ReportCard(def: r, onTap: () => _open(r.id)),
                     ),
@@ -134,7 +136,7 @@ class _ReportCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Text(def.title,
                   style:
-                      AppTypography.subtitle.copyWith(color: c.textPrimary)),
+                  AppTypography.subtitle.copyWith(color: c.textPrimary)),
               const SizedBox(height: AppSpacing.xs),
               Text(def.description,
                   style: AppTypography.caption.copyWith(color: c.textSecondary)),

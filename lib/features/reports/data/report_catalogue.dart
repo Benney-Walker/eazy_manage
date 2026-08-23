@@ -45,7 +45,7 @@ class ReportCatalogue {
       id: 'class-results',
       title: 'Class Results',
       description:
-          'End-of-term results for a whole class: every student with totals, '
+      'End-of-term results for a whole class: every student with totals, '
           'averages, and positions.',
       icon: Icons.summarize_rounded,
       roles: _adminOnly,
@@ -54,7 +54,7 @@ class ReportCatalogue {
       id: 'master-score-sheet',
       title: 'Master Score Sheet',
       description:
-          'Wide spreadsheet of every student in a class against every '
+      'Wide spreadsheet of every student in a class against every '
           'subject total — the class teacher\'s end-of-term sheet.',
       icon: Icons.grid_on_rounded,
       roles: _adminPrincipal,
@@ -63,7 +63,7 @@ class ReportCatalogue {
       id: 'sba',
       title: 'SBA Report',
       description:
-          'School-based assessment breakdown for one subject: each component '
+      'School-based assessment breakdown for one subject: each component '
           'score per student for a class and term.',
       icon: Icons.fact_check_rounded,
       roles: _adminPrincipal,
@@ -72,7 +72,7 @@ class ReportCatalogue {
       id: 'report-card',
       title: 'Student Report Card',
       description:
-          'Individual report card for one student and term — subject '
+      'Individual report card for one student and term — subject '
           'scores, conduct, remarks, and attendance.',
       icon: Icons.badge_rounded,
       roles: _notAccountant,
@@ -81,7 +81,7 @@ class ReportCatalogue {
       id: 'grade-payments',
       title: 'Class Payments',
       description:
-          'Fees paid and outstanding for every student in a class for a '
+      'Fees paid and outstanding for every student in a class for a '
           'term.',
       icon: Icons.account_balance_wallet_rounded,
       roles: _accountantPrincipal,
@@ -90,9 +90,18 @@ class ReportCatalogue {
       id: 'student-payments',
       title: 'Student Payments',
       description:
-          'One student\'s fee position and full payment history for a '
+      'One student\'s fee position and full payment history for a '
           'term.',
       icon: Icons.receipt_rounded,
+      roles: _accountantPrincipal,
+    ),
+    ReportDefinition(
+      id: 'expenses-report',
+      title: 'Expenses Report',
+      description:
+      'Every expense recorded for a term, with a downloadable PDF '
+          'summary.',
+      icon: Icons.receipt_long_rounded,
       roles: _accountantPrincipal,
     ),
   ];

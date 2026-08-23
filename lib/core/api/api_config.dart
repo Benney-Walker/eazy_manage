@@ -219,4 +219,6 @@ abstract final class Endpoints {
       '${ApiConfig.admin}${ApiConfig.v2}/generate-sba-report?levelId=$levelId&subjectId=$subjectId&semesterId=$semesterId';
   static String generateReportCard(String studentId, String semesterId) =>
       '${ApiConfig.student}${ApiConfig.v3}/generate-report-card?studentId=$studentId&semesterId=$semesterId';
+  static String generateExpensesReport(String semesterId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/generate-expenses-report/$semesterId';
 }
