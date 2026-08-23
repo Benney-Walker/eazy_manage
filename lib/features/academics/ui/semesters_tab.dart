@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -201,19 +202,26 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
       if (!mounted) return;
       await refreshSemesters(ref);
       if (!mounted) return;
+      notify(ref, context,
+          action: _isEdit ? 'Update term' : 'Add term',
+          message: _isEdit ? 'Term updated.' : 'Term added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Term updated.' : 'Term added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update term' : 'Add term', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update term' : 'Add term', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
@@ -226,68 +234,68 @@ class _SemesterEditorState extends ConsumerState<_SemesterEditor> {
       icon: Icons.calendar_month_rounded,
       child: _loading
           ? const SizedBox(
-              height: 160, child: Center(child: CircularProgressIndicator()))
+          height: 160, child: Center(child: CircularProgressIndicator()))
           : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(
-                    flex: 2,
-                    child: AppTextField(
-                      label: 'Term name',
-                      hint: 'e.g. First Term',
-                      controller: _name,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: AppTextField(
-                      label: 'Academic year',
-                      hint: 'e.g. 2025/2026',
-                      controller: _year,
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: AppSpacing.lg),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(
-                    child: AcademicsDateField(
-                      label: 'Start date',
-                      value: _start,
-                      onPick: (d) => setState(() => _start = d),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: AcademicsDateField(
-                      label: 'End date',
-                      value: _end,
-                      onPick: (d) => setState(() => _end = d),
-                    ),
-                  ),
-                ]),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  AcademicsInlineError(message: _error!),
-                ],
-                const SizedBox(height: AppSpacing.xl),
-                Row(children: [
-                  const Spacer(),
-                  AppButton.ghost(
-                    label: 'Cancel',
-                    onPressed:
-                        _saving ? null : () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  AppButton.primary(
-                    label: _isEdit ? 'Save changes' : 'Add term',
-                    busy: _saving,
-                    onPressed: _save,
-                  ),
-                ]),
-              ],
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              flex: 2,
+              child: AppTextField(
+                label: 'Term name',
+                hint: 'e.g. First Term',
+                controller: _name,
+              ),
             ),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: AppTextField(
+                label: 'Academic year',
+                hint: 'e.g. 2025/2026',
+                controller: _year,
+              ),
+            ),
+          ]),
+          const SizedBox(height: AppSpacing.lg),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: AcademicsDateField(
+                label: 'Start date',
+                value: _start,
+                onPick: (d) => setState(() => _start = d),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: AcademicsDateField(
+                label: 'End date',
+                value: _end,
+                onPick: (d) => setState(() => _end = d),
+              ),
+            ),
+          ]),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.lg),
+            AcademicsInlineError(message: _error!),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+          Row(children: [
+            const Spacer(),
+            AppButton.ghost(
+              label: 'Cancel',
+              onPressed:
+              _saving ? null : () => Navigator.of(context).pop(),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            AppButton.primary(
+              label: _isEdit ? 'Save changes' : 'Add term',
+              busy: _saving,
+              onPressed: _save,
+            ),
+          ]),
+        ],
+      ),
     );
   }
 
