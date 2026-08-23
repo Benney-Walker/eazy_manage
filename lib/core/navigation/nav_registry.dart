@@ -53,7 +53,6 @@ abstract final class NavRegistry {
     NavSection(
       title: 'SYSTEM',
       items: [
-        NavItem(id: 'offline', label: 'Offline Mode', icon: Icons.cloud_off_rounded, roles: _all),
         NavItem(id: 'academic-setup', label: 'Academic Setup', icon: Icons.edit_note_rounded, roles: _adminOnly),
         NavItem(id: 'settings', label: 'Settings', icon: Icons.settings_rounded, roles: _all),
       ],
