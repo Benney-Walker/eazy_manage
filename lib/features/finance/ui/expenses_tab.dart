@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -212,19 +213,30 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
       if (!mounted) return;
       ref.invalidate(expensesProvider);
       ref.invalidate(totalExpensesProvider);
+      notify(ref, context,
+          action: _isEdit ? 'Update expense' : 'Add expense',
+          message: _isEdit ? 'Expense updated.' : 'Expense added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Expense updated.' : 'Expense added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update expense' : 'Add expense',
+          message: e.message,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update expense' : 'Add expense',
+          message: msg,
+          isError: true,
+          showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
