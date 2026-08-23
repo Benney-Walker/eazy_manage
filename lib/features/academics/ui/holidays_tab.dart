@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -66,7 +67,7 @@ class HolidaysTab extends ConsumerWidget {
                     icon: Icons.beach_access_rounded,
                     title: 'No holidays yet',
                     subtitle:
-                        'Add holidays and school events to build the calendar.',
+                    'Add holidays and school events to build the calendar.',
                   );
                 }
                 return AcademicsListCard(
@@ -199,19 +200,26 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
       }
       if (!mounted) return;
       ref.invalidate(holidaysProvider);
+      notify(ref, context,
+          action: _isEdit ? 'Update holiday' : 'Add holiday',
+          message: _isEdit ? 'Holiday updated.' : 'Holiday added.');
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_isEdit ? 'Holiday updated.' : 'Holiday added.')),
-      );
     } on ApiException catch (e) {
+      notify(ref, context,
+          action: _isEdit ? 'Update holiday' : 'Add holiday', message: e.message,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
         _error = e.message;
       });
     } catch (_) {
+      const msg = 'Could not save. Try again.';
+      notify(ref, context,
+          action: _isEdit ? 'Update holiday' : 'Add holiday', message: msg,
+          isError: true, showSnackbar: false);
       setState(() {
         _saving = false;
-        _error = 'Could not save. Try again.';
+        _error = msg;
       });
     }
   }
