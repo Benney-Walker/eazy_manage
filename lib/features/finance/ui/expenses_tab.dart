@@ -9,6 +9,7 @@ import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../academics/data/academics_providers.dart';
 import '../../academics/ui/academics_widgets.dart';
 import '../data/finance_models.dart';
 import '../data/finance_providers.dart';
@@ -23,43 +24,65 @@ class ExpensesTab extends ConsumerWidget {
     final c = AppColors.of(context);
     final semesterId = ref.watch(financeSemesterIdProvider);
 
-    if (semesterId == null) {
-      return const AcademicsEmpty(
-        icon: Icons.filter_alt_rounded,
-        title: 'Choose a term',
-        subtitle: 'Pick a term above to view and record its expenses.',
-      );
-    }
-
-    final async = ref.watch(expensesProvider);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _toolbar(context, ref, c),
+        _toolbar(context, ref, c, semesterId),
         const SizedBox(height: AppSpacing.lg),
-        Expanded(child: _body(context, ref, c, async)),
+        Expanded(
+          child: semesterId == null
+              ? const AcademicsEmpty(
+            icon: Icons.filter_alt_rounded,
+            title: 'Choose a term',
+            subtitle: 'Pick a term above to view and record its expenses.',
+          )
+              : _body(context, ref, c, ref.watch(expensesProvider)),
+        ),
       ],
     );
   }
 
-  Widget _toolbar(BuildContext context, WidgetRef ref, AppColors c) {
-    final totalAsync = ref.watch(totalExpensesProvider);
-    final total = totalAsync.maybeWhen(
+  Widget _toolbar(
+      BuildContext context, WidgetRef ref, AppColors c, String? semesterId) {
+    final termsAsync = ref.watch(semestersProvider);
+    final total = ref.watch(totalExpensesProvider).maybeWhen(
       data: (v) => _cedis(v),
       orElse: () => '—',
     );
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        SizedBox(
+          width: 240,
+          child: AcademicsDropdown<String>(
+            label: 'Term',
+            hint: 'Select term',
+            value: semesterId,
+            items: termsAsync.maybeWhen(
+              orElse: () => const [],
+              data: (terms) => [
+                for (final s in terms)
+                  DropdownMenuItem(
+                    value: s.semesterId,
+                    child: Text('${s.semesterName}  (${s.academicYear})'),
+                  ),
+              ],
+            ),
+            onChanged: (v) =>
+            ref.read(financeSemesterIdProvider.notifier).state = v,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Expenses',
-                  style: AppTypography.subtitle.copyWith(color: c.textPrimary)),
+              Text('Total this term',
+                  style: AppTypography.label.copyWith(color: c.textSecondary)),
               const SizedBox(height: AppSpacing.xs),
-              Text('Total this term: $total',
-                  style: AppTypography.caption.copyWith(color: c.textSecondary)),
+              Text(total,
+                  style:
+                  AppTypography.subtitle.copyWith(color: c.textPrimary)),
             ],
           ),
         ),
@@ -75,7 +98,9 @@ class ExpensesTab extends ConsumerWidget {
         AppButton.primary(
           label: 'Add expense',
           icon: Icons.add_rounded,
-          onPressed: () => _openEditor(context, ref, null),
+          onPressed: semesterId == null
+              ? null
+              : () => _openEditor(context, ref, null),
         ),
       ],
     );

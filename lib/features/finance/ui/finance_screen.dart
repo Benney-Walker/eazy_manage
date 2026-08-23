@@ -31,7 +31,7 @@ class _FinanceScreenState extends State<FinanceScreen>
     _FinanceTab('Fees Setup', FeesSetupTab(), showContext: false),
     _FinanceTab('Record Payments', RecordPaymentsTab()),
     _FinanceTab('Special Fees', SpecialFeesTab(), showContext: false),
-    _FinanceTab('Expenses', ExpensesTab()),
+    _FinanceTab('Expenses', ExpensesTab(), showContext: false),
   ];
 
   late final TabController _controller =
