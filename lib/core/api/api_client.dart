@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'api_config.dart';
 import 'token_storage.dart';
+import '../logging/app_logger.dart';
 
 enum ApiFailureKind {
   network,
@@ -110,8 +111,33 @@ class ApiClient {
           }
           handler.next(options);
         },
+
+        onResponse: (response, handler) {
+          _logCall(response.requestOptions, response.statusCode);
+          handler.next(response);
+        },
+        onError: (err, handler) {
+          _logCall(err.requestOptions, err.response?.statusCode,
+          error : err.type.name);
+          handler.next(err);
+        }
       ),
     );
+  }
+
+  void _logCall(RequestOptions o, int? status, {String? error}) {
+    final start = o.extra['__startMs'];
+    final ms = (start is int)
+        ? DateTime.now().millisecondsSinceEpoch - start
+        : null;
+    final code = status?.toString() ?? (error ?? 'ERR');
+    final msg = '${o.method} ${o.path} → $code'
+        '${ms == null ? '' : ' (${ms}ms)'}';
+    if (error != null || (status != null && status >= 400)) {
+      AppLog.w('api', msg, error);
+    } else {
+      AppLog.i('api', msg);
+    }
   }
 
   Dio get raw => _dio;

@@ -84,6 +84,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> _restore() async {
     final stored = await _repo.restore();
     if (stored == null) {
+      print("Passed here");
       state = const AuthState.unauthenticated();
       return;
     }

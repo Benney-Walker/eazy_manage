@@ -130,7 +130,6 @@ class _AccountSection extends ConsumerWidget {
         children: [
           _Row('Signed in as', session?.fullName ?? '—'),
           _Row('Organisation', session?.organizationName ?? '—'),
-          _Row('Staff ID', session?.staffId ?? '—'),
           const SizedBox(height: AppSpacing.lg),
           AppButton.danger(
             label: 'Sign out',

@@ -158,7 +158,7 @@ class _SpecialFeeAddState extends ConsumerState<_SpecialFeeAdd> {
 
   Future<void> _save() async {
     final amount = double.tryParse(_amount.text.trim());
-    final description = _description.text.trim();
+    String description = _description.text.trim();
     if (amount == null || amount <= 0) {
       setState(() => _error = 'Enter a valid amount greater than zero.');
       return;
@@ -168,8 +168,7 @@ class _SpecialFeeAddState extends ConsumerState<_SpecialFeeAdd> {
       return;
     }
     if (description.isEmpty) {
-      setState(() => _error = 'Enter a description.');
-      return;
+      description = 'no_description';
     }
 
     setState(() {
@@ -278,7 +277,7 @@ class _SpecialFeeAddState extends ConsumerState<_SpecialFeeAdd> {
           const SizedBox(height: AppSpacing.lg),
           AppTextField(
             label: 'Description',
-            hint: 'e.g. First-term stationery pack',
+            hint: 'Optional',
             controller: _description,
           ),
           if (_error != null) ...[
@@ -331,14 +330,13 @@ class _SpecialFeeEditState extends ConsumerState<_SpecialFeeEdit> {
 
   Future<void> _save() async {
     final amount = double.tryParse(_amount.text.trim());
-    final description = _description.text.trim();
+    String description = _description.text.trim();
     if (amount == null || amount <= 0) {
       setState(() => _error = 'Enter a valid amount greater than zero.');
       return;
     }
     if (description.isEmpty) {
-      setState(() => _error = 'Enter a description.');
-      return;
+      description = 'no_description';
     }
 
     setState(() {
@@ -409,7 +407,7 @@ class _SpecialFeeEditState extends ConsumerState<_SpecialFeeEdit> {
           const SizedBox(height: AppSpacing.lg),
           AppTextField(
             label: 'Description',
-            hint: 'e.g. First-term stationery pack',
+            hint: 'Optional',
             controller: _description,
           ),
           if (_error != null) ...[

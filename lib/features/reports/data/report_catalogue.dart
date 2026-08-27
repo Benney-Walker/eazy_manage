@@ -48,7 +48,7 @@ class ReportCatalogue {
       'End-of-term results for a whole class: every student with totals, '
           'averages, and positions.',
       icon: Icons.summarize_rounded,
-      roles: _adminOnly,
+      roles: _notAccountant,
     ),
     ReportDefinition(
       id: 'master-score-sheet',
@@ -57,7 +57,7 @@ class ReportCatalogue {
       'Wide spreadsheet of every student in a class against every '
           'subject total — the class teacher\'s end-of-term sheet.',
       icon: Icons.grid_on_rounded,
-      roles: _adminPrincipal,
+      roles: _notAccountant,
     ),
     ReportDefinition(
       id: 'sba',
@@ -66,7 +66,7 @@ class ReportCatalogue {
       'School-based assessment breakdown for one subject: each component '
           'score per student for a class and term.',
       icon: Icons.fact_check_rounded,
-      roles: _adminPrincipal,
+      roles: _notAccountant,
     ),
     ReportDefinition(
       id: 'report-card',

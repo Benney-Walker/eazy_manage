@@ -172,6 +172,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   final _amount = TextEditingController();
   final _extraInfo = TextEditingController();
   bool _saving = false;
+  bool _deleting = false;
   String? _error;
 
   bool get _isEdit => widget.existing != null;
@@ -266,6 +267,68 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete expense?'),
+        content: Text(
+            'This will permanently remove "${widget.existing!.description}". '
+                'This can\'t be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Delete',
+                style: TextStyle(color: AppColors.of(dialogContext).danger)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) await _delete();
+  }
+
+  Future<void> _delete() async {
+    setState(() {
+      _deleting = true;
+      _error = null;
+    });
+    try {
+      await ref
+          .read(financeRepositoryProvider)
+          .deleteExpense(widget.existing!.expensesId);
+      if (!mounted) return;
+      ref.invalidate(expensesProvider);
+      ref.invalidate(totalExpensesProvider);
+      notify(ref, context, action: 'Delete expense', message: 'Expense deleted.');
+      Navigator.of(context).pop();
+    } on ApiException catch (e) {
+      notify(ref, context,
+          action: 'Delete expense',
+          message: e.message,
+          isError: true,
+          showSnackbar: false);
+      setState(() {
+        _deleting = false;
+        _error = e.message;
+      });
+    } catch (_) {
+      const msg = 'Could not delete. Try again.';
+      notify(ref, context,
+          action: 'Delete expense',
+          message: msg,
+          isError: true,
+          showSnackbar: false);
+      setState(() {
+        _deleting = false;
+        _error = msg;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AcademicsSheet(
@@ -299,16 +362,23 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
           ],
           const SizedBox(height: AppSpacing.xl),
           Row(children: [
+            if (_isEdit)
+              AppButton.danger(
+                label: 'Delete',
+                busy: _deleting,
+                onPressed: _saving ? null : _confirmDelete,
+              ),
             const Spacer(),
             AppButton.ghost(
               label: 'Cancel',
-              onPressed: _saving ? null : () => Navigator.of(context).pop(),
+              onPressed:
+              (_saving || _deleting) ? null : () => Navigator.of(context).pop(),
             ),
             const SizedBox(width: AppSpacing.sm),
             AppButton.primary(
               label: _isEdit ? 'Update expense' : 'Add expense',
               busy: _saving,
-              onPressed: _save,
+              onPressed: _deleting ? null : _save,
             ),
           ]),
         ],

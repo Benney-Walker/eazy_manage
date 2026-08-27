@@ -123,7 +123,7 @@ abstract final class Endpoints {
   static const String updateSemesterFees =
       '${ApiConfig.finance}${ApiConfig.v2}/update-semester-fees';
 
-  // ---- Finance: Special payments ----
+  // ---- Finance: Special payments ---
   static const String addSpecialFee =
       '${ApiConfig.finance}${ApiConfig.v1}/add-special-fee';
   static String loadSpecialFees(String paymentType) =>
@@ -140,6 +140,8 @@ abstract final class Endpoints {
       '${ApiConfig.finance}${ApiConfig.v1}/total-expenses';
   static const String updateExpenseRecord =
       '${ApiConfig.finance}${ApiConfig.v1}/update-expense-record';
+  static String deleteExpenses(String expensesId) =>
+      '${ApiConfig.finance}${ApiConfig.v1}/delete-expenses/$expensesId';
 
   // ---- Finance: Payments ----
   static const String addFeesPayment =

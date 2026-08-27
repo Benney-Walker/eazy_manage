@@ -8,6 +8,11 @@ class StudentSummary {
     studentId: (j['studentId'] ?? '').toString(),
     studentName: (j['studentName'] ?? '').toString(),
   );
+
+  Map<String, dynamic> toJson() => {
+    'studentId': studentId,
+    'studentName': studentName,
+  };
 }
 
 class ClassOption {

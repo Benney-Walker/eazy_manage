@@ -47,7 +47,7 @@ abstract final class NavRegistry {
       title: 'COMMUNICATION',
       items: [
         NavItem(id: 'broadcasts', label: 'Broadcasts', icon: Icons.campaign_rounded, roles: _principalAdmin),
-        NavItem(id: 'active-sessions', label: 'Active Sessions', icon: Icons.wifi_tethering_rounded, roles: _adminOnly),
+        //NavItem(id: 'active-sessions', label: 'Active Sessions', icon: Icons.wifi_tethering_rounded, roles: _adminOnly),
       ],
     ),
     NavSection(

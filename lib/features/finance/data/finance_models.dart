@@ -3,7 +3,7 @@
 // ===========================================================================
 
 class FeesDetails {
-  final int feesId;
+  final String feesId;
   final double amount;
   final String semesterId;
   final String levelName;
@@ -16,16 +16,12 @@ class FeesDetails {
   });
 
   factory FeesDetails.fromJson(Map<String, dynamic> j) => FeesDetails(
-    feesId: (j['feesId'] is num)
-        ? (j['feesId'] as num).toInt()
-        : int.tryParse('${j['feesId']}') ?? 0,
+    feesId: (j['feesId'] ?? '').toString(),
     amount: (j['amount'] as num?)?.toDouble() ?? 0,
     semesterId: (j['semesterId'] ?? '').toString(),
     levelName: (j['levelName'] ?? '').toString(),
   );
 
-  /// Body for `PUT /finance/v2/update-semester-fees`. The fee is identified by
-  /// [feesId]; [newAmount] is the new value.
   Map<String, dynamic> toUpdateJson(double newAmount) => {
     'feesId': feesId,
     'amount': newAmount,

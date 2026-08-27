@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/cache/reference_cache.dart';
 import '../../../core/connectivity/connectivity_providers.dart';
 import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
@@ -205,7 +206,16 @@ class RecordPaymentsTab extends ConsumerWidget {
 final _financeRosterProvider = FutureProvider.autoDispose
     .family<List<StudentSummary>, String?>((ref, levelId) async {
   if (levelId == null) return const [];
-  return ref.watch(studentRepositoryProvider).loadStudents(levelId);
+
+  return readThroughCache<StudentSummary>(
+    cache: ref.watch(referenceCacheProvider),
+    isOnline: ref.watch(isOnlineProvider),
+    key: 'roster_$levelId',
+    ttl: Duration.zero,
+    fetch: () => ref.read(studentRepositoryProvider).loadStudents(levelId),
+    fromJson: StudentSummary.fromJson,
+    toJson: (s) => s.toJson(),
+  );
 });
 
 /// Add (existing == null) a payment, or edit an existing one.

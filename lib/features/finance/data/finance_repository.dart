@@ -153,6 +153,10 @@ class FinanceRepository {
     await _api.put(Endpoints.updateExpenseRecord, body: req.toJson());
   }
 
+  Future<void> deleteExpense(String expensesId) async {
+    await _api.delete(Endpoints.deleteExpenses(expensesId));
+  }
+
   Future<double> totalExpenses() async {
     try {
       final res =
