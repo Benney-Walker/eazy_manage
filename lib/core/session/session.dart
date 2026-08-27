@@ -9,7 +9,6 @@ import '../../features/auth/data/auth_repository.dart';
 /// The signed-in user's identity, as the shell needs it.
 @immutable
 class Session {
-  final String staffId;
   final String fullName;
   final String organizationName;
 
@@ -18,7 +17,6 @@ class Session {
   final AppRole role;
 
   const Session({
-    required this.staffId,
     required this.fullName,
     required this.organizationName,
     required this.roles,
@@ -36,7 +34,6 @@ class Session {
   bool get hasMultipleRoles => roles.length > 1;
 
   Session copyWith({AppRole? role}) => Session(
-    staffId: staffId,
     fullName: fullName,
     organizationName: organizationName,
     roles: roles,
@@ -95,7 +92,6 @@ class AuthController extends Notifier<AuthState> {
     // refresh token is what keeps the session alive across restarts.
     _api.setCredentials(
       token: stored.token,
-      staffId: stored.staffId,
       refreshToken: stored.refreshToken,
     );
 
@@ -124,8 +120,6 @@ class AuthController extends Notifier<AuthState> {
     state = AuthState.authenticated(_sessionFromStored(stored));
   }
 
-  /// Attempt login. Returns null on success, or a user-facing error message
-  /// on failure (so the login screen can show it inline).
   Future<String?> login({
     required String staffId,
     required String password,
@@ -135,7 +129,6 @@ class AuthController extends Notifier<AuthState> {
 
       _api.setCredentials(
         token: res.authToken,
-        staffId: res.staffId,
         refreshToken: res.refreshToken,
       );
 
@@ -145,7 +138,6 @@ class AuthController extends Notifier<AuthState> {
       final active = AppRole.fromBackend(storedActive ?? res.roles.first);
 
       state = AuthState.authenticated(Session(
-        staffId: res.staffId,
         fullName: res.staffName,
         organizationName: res.institutionName,
         roles: roles,
@@ -190,7 +182,6 @@ class AuthController extends Notifier<AuthState> {
     (stored.roles as List<String>).map(AppRole.fromBackend).toList();
     final active = AppRole.fromBackend(stored.activeRole as String);
     return Session(
-      staffId: stored.staffId as String,
       fullName: stored.staffName as String,
       organizationName: stored.institutionName as String,
       roles: roles.isEmpty ? [active] : roles,

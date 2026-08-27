@@ -148,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'by Bynex Technologies',
+            'by Bynex Labs',
             style: AppTypography.body.copyWith(
               color: Colors.white.withValues(alpha: 0.75),
             ),
@@ -166,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: AppSpacing.md),
           _feature(c, 'Attendance & results'),
           const SizedBox(height: AppSpacing.md),
-          _feature(c, 'Finance & analytics'),
+          _feature(c, 'Finance & report generation'),
         ],
       ),
     );

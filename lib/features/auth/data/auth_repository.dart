@@ -47,7 +47,6 @@ class AuthRepository {
     await _storage.saveSession(
       token: login.authToken,
       refreshToken: login.refreshToken,
-      staffId: login.staffId,
       staffName: login.staffName,
       institutionName: login.institutionName,
       roles: login.roles,

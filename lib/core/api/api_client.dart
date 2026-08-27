@@ -63,14 +63,9 @@ class ApiClient {
 
   Future<TokenRefreshResult>? _refreshInFlight;
 
-  void setCredentials({
-    required String token,
-    required String staffId,
-    String? refreshToken,
-  }) {
+  void setCredentials({required String token, required refreshToken,}) {
     _tokenInMemory = token;
-    _staffIdInMemory = staffId;
-    if (refreshToken != null) _refreshTokenInMemory = refreshToken;
+    _refreshTokenInMemory = refreshToken;
   }
 
   void clearCredentials() {
@@ -98,7 +93,6 @@ class ApiClient {
           if (!isAuthCall) {
 
             final token = _tokenInMemory ?? await _storage.token;
-            final staffId = _staffIdInMemory ?? await _storage.staffId;
 
             if (token == null || token.isEmpty) {
 
@@ -113,9 +107,6 @@ class ApiClient {
             }
 
             options.headers['Authorization'] = 'Bearer $token';
-            if (staffId != null && staffId.isNotEmpty) {
-              options.headers['staffId'] = staffId;
-            }
           }
           handler.next(options);
         },
