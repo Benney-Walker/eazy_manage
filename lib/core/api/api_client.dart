@@ -59,7 +59,6 @@ class ApiClient {
   OnTokenRefreshed? onTokenRefreshed;
 
   String? _tokenInMemory;
-  String? _staffIdInMemory;
   String? _refreshTokenInMemory;
 
   Future<TokenRefreshResult>? _refreshInFlight;
@@ -71,7 +70,6 @@ class ApiClient {
 
   void clearCredentials() {
     _tokenInMemory = null;
-    _staffIdInMemory = null;
     _refreshTokenInMemory = null;
     _refreshInFlight = null;
   }
@@ -270,6 +268,7 @@ class ApiClient {
 
   Future<TokenRefreshResult> _doRefresh() async {
     final refreshToken = _refreshTokenInMemory ?? await _storage.refreshToken;
+    print("refresh token");
     if (refreshToken == null || refreshToken.isEmpty) {
       return const TokenRefreshResult(TokenRefreshOutcome.noRefreshToken);
     }
@@ -283,10 +282,12 @@ class ApiClient {
       );
       final code = res.statusCode ?? 0;
       if (code == 401) {
+        print("401");
         return const TokenRefreshResult(TokenRefreshOutcome.rejected);
       }
       // Any other non-2xx (5xx, etc.) is transient — don't kill the session.
       if (code < 200 || code >= 300) {
+        print("Unavailable");
         return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
       }
 
