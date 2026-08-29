@@ -70,13 +70,10 @@ class AuthController extends Notifier<AuthState> {
     final storage = ref.read(tokenStorageProvider);
     _repo = AuthRepository(_api, storage);
 
-    // A 401 that survives a token refresh → treat as an expired session.
     _api.onUnauthorized = _onUnauthorized;
-    // After a silent refresh, the repository persists the new access token;
-    // nothing else in state needs to change (identity/roles are unchanged).
+
     _api.onTokenRefreshed = (_) {};
 
-    // Kick off restore; state starts unknown and resolves asynchronously.
     _restore();
     return const AuthState.unknown();
   }
@@ -167,10 +164,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   void _onUnauthorized(bool refreshTokenRejected) {
-    // Every unresolved 401 sends the user to login. Storage is only cleared
-    // when the refresh token itself was rejected (401) — an access-token 401
-    // that couldn't be refreshed for a transient reason leaves the stored
-    // session intact so it can recover.
+
     _api.clearCredentials();
     if (refreshTokenRejected) {
       _repo.signOut();
