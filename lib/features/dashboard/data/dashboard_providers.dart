@@ -9,9 +9,6 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
   return DashboardRepository(ref.watch(apiClientProvider));
 });
 
-/// Loads the dashboard payload for the currently active role. Re-fetches when
-/// the role changes (switching roles rebuilds the dashboard). Emits
-/// AsyncLoading → AsyncData/AsyncError so the UI can show the right state.
 final dashboardProvider = FutureProvider.autoDispose<DashboardData>((ref) async {
   final session = ref.watch(sessionProvider);
   if (session == null) {

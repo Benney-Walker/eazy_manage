@@ -55,10 +55,27 @@ class RecentLog {
   );
 }
 
+class ClassInfo {
+  final String className;
+  final int classSize;
+
+  const ClassInfo({
+    required this.className,
+    required this.classSize,
+  });
+
+  factory ClassInfo.fromJson(Map<String, dynamic> j) => ClassInfo(
+    className: (j['className']).toString(),
+    classSize: (j['classSize'] as num).toInt(),
+  );
+}
+
 /// The full set of dashboard data for a role. Any field may be null when the
 /// role doesn't surface that stat (e.g. teaching staff don't see fees).
 class DashboardData {
   final int? totalStudents;
+  final int? totalClassStudents;
+  final String? className;
   final int? totalStaff;
   final int? totalTeachingStaff;
   final double? totalFees;
@@ -70,6 +87,8 @@ class DashboardData {
 
   const DashboardData({
     this.totalStudents,
+    this.totalClassStudents,
+    this.className,
     this.totalStaff,
     this.totalTeachingStaff,
     this.totalFees,

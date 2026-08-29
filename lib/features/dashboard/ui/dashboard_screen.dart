@@ -13,9 +13,6 @@ import '../../../core/widgets/app_metric_card.dart';
 import '../data/dashboard_models.dart';
 import '../data/dashboard_providers.dart';
 
-/// The dashboard — the first data-backed screen. Renders a role-scoped set of
-/// metric cards plus a supporting list (recent logs / transactions / absentees),
-/// with proper loading and error states.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -125,7 +122,7 @@ class DashboardScreen extends ConsumerWidget {
   // ---- Content ------------------------------------------------------------
   Widget _content(
       BuildContext context, AppColors c, Session? session, DashboardData d) {
-    final role = session?.role ?? AppRole.generalStaff;
+    final role = session?.role ?? AppRole.teachingStaff;
     final cards = _metricsFor(role, c, d);
 
     return Column(
@@ -183,9 +180,8 @@ class DashboardScreen extends ConsumerWidget {
           AppMetricCard(icon: Icons.receipt_long_rounded, label: 'Total Expenses', value: cedis(d.totalExpenses), accent: c.warning),
         ];
       case AppRole.teachingStaff:
-      case AppRole.generalStaff:
         return [
-          AppMetricCard(icon: Icons.groups_rounded, label: 'Students', value: n(d.totalStudents)),
+          AppMetricCard(icon: Icons.groups_rounded, label: d.className.toString(), value: n(d.totalClassStudents)),
         ];
     }
   }
@@ -335,7 +331,6 @@ class DashboardScreen extends ConsumerWidget {
           leadingIcon: Icons.history_rounded,
         );
       case AppRole.teachingStaff:
-      case AppRole.generalStaff:
         return _guidanceCard(c);
     }
   }
@@ -356,7 +351,7 @@ class DashboardScreen extends ConsumerWidget {
                     AppTypography.label.copyWith(color: c.textSecondary)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                    'Mark attendance, record conduct, and enter results for '
+                    'view attendance, record conduct, and enter results for '
                         'your class from the sidebar.',
                     style: AppTypography.body.copyWith(color: c.textPrimary)),
               ],

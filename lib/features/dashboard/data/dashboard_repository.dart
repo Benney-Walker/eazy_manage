@@ -17,7 +17,6 @@ class DashboardRepository {
       case AppRole.accountant:
         return _finance();
       case AppRole.teachingStaff:
-      case AppRole.generalStaff:
         return _staff();
     }
   }
@@ -80,12 +79,33 @@ class DashboardRepository {
   }
 
   Future<DashboardData> _staff() async {
-    // NB: the JavaFX staff dashboard shows the teacher's own assigned-class
-    // roster (load-staff-grades), not school-wide absentees — absentees are a
-    // principal-level overview. The roster view is a separate port; for now the
-    // staff dashboard is the student count plus quick guidance.
-    final students = await _count(Endpoints.totalStudents);
-    return DashboardData(totalStudents: students);
+    try {
+      final res = await _api.get(Endpoints.classInfo,
+          triggerLogoutOn401: false);
+      final info = ClassInfo.fromJson(res.data);
+      return DashboardData(
+          className: info.className,
+          totalClassStudents: info.classSize
+      );
+    } on ApiException{
+      return DashboardData(
+          className: 'No assigned class',
+          totalClassStudents: 0
+      );
+    }
+  }
+
+  Future<ClassInfo?> _getClassInfo() async {
+    try {
+      final res = await _api.get(Endpoints.totalStudents,
+          triggerLogoutOn401: false);
+      final body = res.data;
+      if (body is Map<String, dynamic>) return ClassInfo.fromJson(body);
+      return null;
+    } on ApiException {
+
+      return null;
+    }
   }
 
   // ---- Primitives ---------------------------------------------------------
