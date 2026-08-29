@@ -37,7 +37,6 @@ class ReportCatalogue {
     AppRole.principal,
     AppRole.administrator,
     AppRole.teachingStaff,
-    AppRole.generalStaff,
   };
 
   static const all = <ReportDefinition>[

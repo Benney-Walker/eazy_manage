@@ -38,8 +38,7 @@ enum AppRole {
   principal('Principal'),
   administrator('Administrator'),
   accountant('Accountant'),
-  teachingStaff('Teaching Staff'),
-  generalStaff('General Staff');
+  teachingStaff('Teaching Staff');
 
   final String label;
   const AppRole(this.label);
@@ -50,7 +49,6 @@ enum AppRole {
         AppRole.administrator => 'ADMINISTRATOR',
         AppRole.accountant => 'ACCOUNTANT',
         AppRole.teachingStaff => 'TEACHING_STAFF',
-        AppRole.generalStaff => 'GENERAL_STAFF',
       };
 
   /// Parse a backend role string (e.g. "TEACHING_STAFF") into an [AppRole].
@@ -63,10 +61,8 @@ enum AppRole {
       case 'ACCOUNTANT':
         return AppRole.accountant;
       case 'TEACHING_STAFF':
+        default:
         return AppRole.teachingStaff;
-      case 'GENERAL_STAFF':
-      default:
-        return AppRole.generalStaff;
     }
   }
 }
