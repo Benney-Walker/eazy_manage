@@ -30,6 +30,8 @@ abstract final class Endpoints {
   // ---- Dashboard counts (plain-number response bodies) ----
   static const String totalStudents =
       '${ApiConfig.student}${ApiConfig.v1}/total-students';
+  static const String classInfo =
+      '${ApiConfig.staff}${ApiConfig.v1}/load-class-info';
   static const String totalStaff =
       '${ApiConfig.staff}${ApiConfig.v1}/total-staffs';
   static const String totalTeachingStaff =
