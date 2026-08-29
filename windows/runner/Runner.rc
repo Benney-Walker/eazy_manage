@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.bynexlabs" "\0"
-            VALUE "FileDescription", "eazy_manage" "\0"
+            VALUE "CompanyName", "Bynex Labs" "\0"
+            VALUE "FileDescription", "Eazy Manage" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "eazy_manage" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.bynexlabs. All rights reserved." "\0"
             VALUE "OriginalFilename", "eazy_manage.exe" "\0"
-            VALUE "ProductName", "eazy_manage" "\0"
+            VALUE "ProductName", "Eazy Manage" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
