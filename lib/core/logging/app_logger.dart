@@ -21,14 +21,6 @@ class LogEntry {
   });
 }
 
-/// Client-side activity log. Records app activity (API calls, navigation, auth,
-/// sync, errors) to an in-memory ring buffer and a rotating file on disk, for
-/// later diagnostics. Metadata only — never request/response bodies, passwords,
-/// or tokens. This is not shown to end users; it exists so issues can be
-/// investigated from the log file (a future update may offer to share it).
-///
-/// Logging must never throw or block the UI: every I/O path is guarded and
-/// file writes are serialised on a background Future chain.
 class AppLogger {
   AppLogger._();
   static final AppLogger instance = AppLogger._();

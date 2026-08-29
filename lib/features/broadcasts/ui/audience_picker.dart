@@ -7,12 +7,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../students/data/student_providers.dart';
 import '../data/broadcast_models.dart';
 
-/// A reusable audience picker: staff-role toggles + per-class toggles. Selected
-/// values (role keys and/or class levelIds) are surfaced via [onChanged] as a
-/// single flat list, matching the wire format (`audience: [...]`).
-///
-/// Both the SMS and Email composers embed one of these; each keeps its own
-/// selection state via the [selected] set passed in.
 class AudiencePicker extends ConsumerWidget {
   final Set<String> selected;
   final ValueChanged<Set<String>> onChanged;

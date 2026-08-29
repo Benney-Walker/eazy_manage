@@ -1,10 +1,3 @@
-/// Models for the Broadcasts (messaging) domain. The JSON keys below match the
-/// EXACT wire format serialized by the JavaFX `MessagingService` — note these
-/// differ from the DTO field names (smsText -> "message", mailSubject ->
-/// "subject", mailBody -> "body"). The `audience` is a flat list of role keys
-/// (e.g. TEACHING_STAFF) and/or class levelIds.
-
-/// The staff roles that can be targeted (mirrors STAFF_ROLE_LABELS).
 class BroadcastRoles {
   static const entries = <MapEntry<String, String>>[
     MapEntry('PRINCIPAL', 'Principal'),

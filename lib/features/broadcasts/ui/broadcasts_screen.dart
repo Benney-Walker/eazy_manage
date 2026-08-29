@@ -12,11 +12,6 @@ class _BroadcastTab {
   const _BroadcastTab(this.label, this.view);
 }
 
-/// The Broadcasts surface (Principal + Administrator). Two channels — SMS and
-/// Email — each with a message composer and a shared audience picker.
-///
-/// The tab list is the single source of truth for the controller length,
-/// labels, and views, so they can never drift.
 class BroadcastsScreen extends StatefulWidget {
   const BroadcastsScreen({super.key});
 
