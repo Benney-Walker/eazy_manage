@@ -21,14 +21,13 @@ class TokenStorage {
     required List<String> roles,
     required String activeRole,
   }) async {
-    await Future.wait([
-      _storage.write(key: _kToken, value: token),
-      _storage.write(key: _kRefreshToken, value: refreshToken),
-      _storage.write(key: _kStaffName, value: staffName),
-      _storage.write(key: _kInstitution, value: institutionName),
-      _storage.write(key: _kRoles, value: roles.join(',')),
-      _storage.write(key: _kActiveRole, value: activeRole),
-    ]);
+    // Execute sequentially to prevent Windows file-lock collisions
+    await _storage.write(key: _kToken, value: token);
+    await _storage.write(key: _kRefreshToken, value: refreshToken);
+    await _storage.write(key: _kStaffName, value: staffName);
+    await _storage.write(key: _kInstitution, value: institutionName);
+    await _storage.write(key: _kRoles, value: roles.join(','));
+    await _storage.write(key: _kActiveRole, value: activeRole);
   }
 
   /// Replace just the access token (after a successful refresh) without
