@@ -1,16 +1,19 @@
 abstract final class ApiConfig {
 
+  static const bool useLocal =  false;
+
   static const String PRODUCTION_URL = 'https://schoolmanagementsystem-production-46c3.up.railway.app';
 
   static const String LOCAL_URL = 'http://localhost:8080';
 
-  static const String BASE_URL = LOCAL_URL + '/api';
+  static String get BASE_URL => '${useLocal ? LOCAL_URL : PRODUCTION_URL}/api';
 
   // URL roots
   static const String finance = '/finance';
   static const String staff = '/staff';
   static const String student = '/student';
   static const String admin = '/admin';
+  static const String message = '/message';
   static const String offline = '/offline';
   static const String auth = '/auth';
 
@@ -171,8 +174,8 @@ abstract final class Endpoints {
   // ---- Results (Enter Scores) ----
   static String loadSubjectStudents(String subjectId, String semesterId) =>
       '${ApiConfig.student}${ApiConfig.v1}/load-subject-students/$subjectId/$semesterId';
-  static const String saveScores =
-      '${ApiConfig.student}${ApiConfig.v1}/save-scores';
+  static String saveScores(String subjectId, String semesterId) =>
+      '${ApiConfig.student}${ApiConfig.v1}/save-scores/$subjectId/$semesterId';
 
   // ---- Reports: end-of-year progression (third-term only) ----
   // PUT, no body; staffId travels in the header via the interceptor.
@@ -188,9 +191,9 @@ abstract final class Endpoints {
 
   // ---- Broadcasts (messaging) ----
   static const String broadcastSms =
-      '${ApiConfig.admin}${ApiConfig.v1}/broadcasts-message';
+      '${ApiConfig.message}${ApiConfig.v1}/broadcast-sms';
   static const String broadcastEmail =
-      '${ApiConfig.admin}${ApiConfig.v1}/broadcast-email';
+      '${ApiConfig.message}${ApiConfig.v1}/broadcast-email';
 
   // ---- Audit Logs ----
   static String staffLogs(String selectedStaffId, String fromDate, String toDate) =>
