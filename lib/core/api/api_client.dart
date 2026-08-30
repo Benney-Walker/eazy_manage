@@ -166,13 +166,23 @@ class ApiClient {
 
   Future<Response<dynamic>> post(String path,
       {Object? body, bool triggerLogoutOn401 = true}) {
-    return _send(() => _dio.post(path, data: body),
+    return _send(() => _dio.post(
+        path,
+        data: body,
+      options: body != null ? Options(contentType: Headers.jsonContentType) : null
+    ),
         triggerLogoutOn401: triggerLogoutOn401);
   }
 
   Future<Response<dynamic>> put(String path,
       {Object? body, bool triggerLogoutOn401 = true}) {
-    return _send(() => _dio.put(path, data: body),
+    return _send(() => _dio.put(
+        path,
+        data: body,
+      options: body != null
+          ? Options(contentType: Headers.jsonContentType)
+          : null
+    ),
         triggerLogoutOn401: triggerLogoutOn401);
   }
 
