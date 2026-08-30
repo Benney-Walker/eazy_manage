@@ -1,10 +1,4 @@
-/// Models for the Results (Enter Scores) domain. Mirrors the JavaFX
-/// `StudentsScoresTable` / `SubjectScores` DTOs and the score formula from
-/// `EnterScoresController`.
 
-/// The five editable score components with their maximum values, in display
-/// order. Kept as data so the grid can render columns without repeating
-/// per-field plumbing.
 class ScoreColumn {
   final String key;
   final String label;
@@ -26,14 +20,6 @@ class ScoreColumn {
   static const all = [classTest1, groupWork, classTest2, project, exam];
 }
 
-/// One student's score row. The five component scores are editable; the class
-/// score, calculated exam score, and total are DERIVED live from them, so they
-/// are always consistent (no stale computed fields).
-///
-/// Formula (from EnterScoresController):
-///   classScore          = ((ct1 + groupWork + ct2 + project) / 100) * 50
-///   calculatedExamScore = (exam / 100) * 50
-///   total               = classScore + calculatedExamScore   (out of 100)
 class ScoreRow {
   final String studentId;
   final String studentName;

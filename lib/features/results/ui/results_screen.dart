@@ -15,9 +15,6 @@ import '../../students/data/student_providers.dart';
 import '../data/results_models.dart';
 import '../data/results_providers.dart';
 
-/// Enter Scores: a spreadsheet-style grid. Pick class → subject → term,
-/// then type the five component scores per student. Class score, exam score,
-/// and total compute live. Saving is a local-first batch write.
 class ResultsScreen extends ConsumerStatefulWidget {
   const ResultsScreen({super.key});
 
@@ -77,11 +74,13 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
       _error = null;
     });
 
-    final subjectName = ref.read(subjectScoresProvider).asData?.value?.subjectName ??
+    final subjectId = ref.read(subjectScoresProvider).asData?.value?.subjectId ??
         '';
+    final semesterId = ref.read(resultsSemesterIdProvider);
     try {
       await ref.read(resultsRepositoryProvider).saveScores(
-        subjectName: subjectName,
+        subjectId: subjectId,
+        semesterId: semesterId.toString(),
         rows: _draft,
       );
       if (!mounted) return;

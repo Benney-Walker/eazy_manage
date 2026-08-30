@@ -7,11 +7,6 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-/// The durable outbox: one row per queued write. Persists on disk so pending
-/// offline writes survive an app restart.
-///
-/// Columns mirror an `OutboxEntry`: the HTTP method, path, optional JSON body
-/// (stored as a text blob), a human description, and when it was queued.
 class OutboxRows extends Table {
   /// Client-generated unique id (also the OutboxEntry id).
   TextColumn get id => text()();
