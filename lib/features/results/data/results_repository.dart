@@ -42,14 +42,15 @@ class ResultsRepository {
   /// POST /student/v1/save-scores — a JSON ARRAY of all rows (batch), sent
   /// local-first. Returns as soon as the batch is queued durably.
   Future<void> saveScores({
-    required String subjectName,
+    required String subjectId,
+    required String semesterId,
     required List<ScoreRow> rows,
   }) async {
     final body = rows.map((r) => r.toJson()).toList();
     await _writer.submit(
       method: OutboxMethod.post,
-      path: Endpoints.saveScores,
-      description: 'Scores for $subjectName (${rows.length} students)',
+      path: Endpoints.saveScores(subjectId, semesterId),
+      description: 'Scores for $subjectId (${rows.length} students)',
       body: body,
     );
   }
