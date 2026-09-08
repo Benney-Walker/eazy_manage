@@ -91,7 +91,7 @@ class AuthRepository {
     required List<String> roles,
   }) async {
     final res = await _api.post(
-      Endpoints.enrollStaff,
+      Endpoints.enrollNewPrincipal,
       body: {
         'firstName': firstName,
         'lastName': lastName,
