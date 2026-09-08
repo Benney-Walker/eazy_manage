@@ -237,18 +237,12 @@ class Holiday {
   final String holidayName; // enum value
   final String startDate;
   final String endDate;
-  final String semesterId;
-  final String semesterName;
-  final String academicYear;
 
   const Holiday({
     required this.holidayId,
     required this.holidayName,
     required this.startDate,
     required this.endDate,
-    required this.semesterId,
-    required this.semesterName,
-    required this.academicYear,
   });
 
   factory Holiday.fromJson(Map<String, dynamic> j) => Holiday(
@@ -258,9 +252,6 @@ class Holiday {
     holidayName: (j['holidayName'] ?? '').toString(),
     startDate: (j['startDate'] ?? '').toString(),
     endDate: (j['endDate'] ?? '').toString(),
-    semesterId: (j['semesterId'] ?? '').toString(),
-    semesterName: (j['semesterName'] ?? '').toString(),
-    academicYear: (j['academicYear'] ?? '').toString(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -268,9 +259,6 @@ class Holiday {
     'holidayName': holidayName,
     'startDate': startDate,
     'endDate': endDate,
-    'semesterId': semesterId,
-    'semesterName': semesterName,
-    'academicYear': academicYear,
   };
 
   Holiday copyWith({
@@ -286,9 +274,7 @@ class Holiday {
         holidayName: holidayName ?? this.holidayName,
         startDate: startDate ?? this.startDate,
         endDate: endDate ?? this.endDate,
-        semesterId: semesterId ?? this.semesterId,
-        semesterName: semesterName ?? this.semesterName,
-        academicYear: academicYear ?? this.academicYear,
+
       );
 }
 
