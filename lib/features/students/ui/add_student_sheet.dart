@@ -33,6 +33,7 @@ class _AddStudentSheetState extends ConsumerState<AddStudentSheet> {
 
   bool _saving = false;
   bool _isNew = false;
+  bool _isBorder = false;
   String? _error;
 
   @override
@@ -75,6 +76,7 @@ class _AddStudentSheetState extends ConsumerState<AddStudentSheet> {
       parentName: _parentName.text.trim(),
       guardianContact: _guardianContact.text.trim(),
       isNew: _isNew,
+      isBorder:  _isBorder,
     );
 
     try {
@@ -203,27 +205,55 @@ class _AddStudentSheetState extends ConsumerState<AddStudentSheet> {
                   ),
 
                   const SizedBox(height: AppSpacing.lg),
-                  InkWell(
-                    onTap: _saving ? null : () => setState(() => _isNew = !_isNew),
-                    borderRadius: const BorderRadius.all(AppRadius.smR),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Checkbox(
-                              value: _isNew,
-                              onChanged: _saving ? null : (v) => setState(() => _isNew = v ?? false),
-                            ),
+                  Row (
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: _saving ? null : () => setState(() => _isNew = !_isNew),
+                        borderRadius: const BorderRadius.all(AppRadius.smR),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: _isNew,
+                                  onChanged: _saving ? null : (v) => setState(() => _isNew = v ?? false),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text('New student',
+                                  style: AppTypography.body.copyWith(color: c.textPrimary)),
+                            ],
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text('New student',
-                              style: AppTypography.body.copyWith(color: c.textPrimary)),
-                        ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: AppSpacing.lg),
+                      InkWell(
+                        onTap: _saving ? null : () => setState(() => _isBorder = !_isBorder),
+                        borderRadius: const BorderRadius.all(AppRadius.smR),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: Checkbox(
+                                  value: _isBorder,
+                                  onChanged: _saving ? null : (v) => setState(() => _isBorder = v ?? false),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text('Boarding',
+                                  style: AppTypography.body.copyWith(color: c.textPrimary)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   if (_error != null) ...[
