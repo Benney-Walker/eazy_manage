@@ -141,8 +141,6 @@ class StaffDetail {
       );
 }
 
-/// Payload for `POST /auth/v1/enroll-new-staff`. Uses `lastName` (not
-/// `surname`) and `roles` (not `staffRoles`), matching the enroll endpoint.
 class NewStaffRequest {
   final String firstName;
   final String lastName;

@@ -1,7 +1,7 @@
 name: eazy_manage
 description: "Flutter desktop app for eazy manage"
 publish_to: 'none'
-version: 4.0.0+1
+version: 4.0.3+1
 
 environment:
   sdk: ^3.12.0

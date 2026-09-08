@@ -2,9 +2,6 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_config.dart';
 import 'broadcast_models.dart';
 
-/// Sends SMS and email broadcasts. These are online, user-initiated actions
-/// (not part of the offline-capable set), so they use the API directly and let
-/// auth failures surface normally.
 class BroadcastRepository {
   final ApiClient _api;
 

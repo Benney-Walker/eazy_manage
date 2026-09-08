@@ -6,7 +6,6 @@ import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_badge.dart';
 import '../../../core/widgets/app_button.dart';
 import '../data/academics_models.dart';
 import '../data/academics_providers.dart';
@@ -88,17 +87,14 @@ class HolidaysTab extends ConsumerWidget {
         ? h.startDate
         : '${h.startDate} → ${h.endDate}';
     final sub = [
-      if (range.isNotEmpty) range,
-      if (h.semesterName.isNotEmpty) h.semesterName,
+      if (range.isNotEmpty) range
     ].join('  ·  ');
 
     return AcademicsRow(
       leadingIcon: _iconFor(h.holidayName),
       title: HolidayTypes.label(h.holidayName),
       subtitle: sub.isEmpty ? null : sub,
-      trailing: h.academicYear.isEmpty
-          ? null
-          : AppBadge(label: h.academicYear, intent: BadgeIntent.info),
+      trailing: null,
       onTap: () => _openEditor(context, ref, h),
     );
   }
@@ -134,7 +130,6 @@ class _HolidayEditor extends ConsumerStatefulWidget {
 
 class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
   String? _type;
-  String? _semesterId; // drives semesterName + academicYear too
   DateTime? _start;
   DateTime? _end;
 
@@ -149,7 +144,6 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
     final e = widget.existing;
     if (e != null) {
       _type = e.holidayName.isEmpty ? null : e.holidayName;
-      _semesterId = e.semesterId.isEmpty ? null : e.semesterId;
       _start = _parse(e.startDate);
       _end = _parse(e.endDate);
     }
@@ -168,13 +162,6 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
       setState(() => _error = 'End date cannot be before start date.');
       return;
     }
-    if (_semesterId == null) {
-      setState(() => _error = 'Select a semester.');
-      return;
-    }
-
-    // Resolve the chosen semester so we can send name + academic year too.
-    final sem = semesters.where((s) => s.semesterId == _semesterId).firstOrNull;
 
     setState(() {
       _saving = true;
@@ -186,9 +173,6 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
       holidayName: _type!,
       startDate: _iso(_start!),
       endDate: _iso(_end!),
-      semesterId: _semesterId!,
-      semesterName: sem?.semesterName ?? widget.existing?.semesterName ?? '',
-      academicYear: sem?.academicYear ?? widget.existing?.academicYear ?? '',
     );
 
     final repo = ref.read(academicsRepositoryProvider);
@@ -269,43 +253,6 @@ class _HolidayEditorState extends ConsumerState<_HolidayEditor> {
             ),
           ]),
           const SizedBox(height: AppSpacing.lg),
-          semestersAsync.when(
-            loading: () => AcademicsDropdown<String>(
-              label: 'Terms',
-              value: null,
-              items: const [],
-              onChanged: (_) {},
-              hint: 'Loading terms',
-            ),
-            error: (_, __) => AcademicsDropdown<String>(
-              label: 'Term',
-              value: null,
-              items: const [],
-              onChanged: (_) {},
-              hint: 'Terms unavailable',
-            ),
-            data: (semesters) {
-              final valid = semesters.any((s) => s.semesterId == _semesterId)
-                  ? _semesterId
-                  : null;
-              return AcademicsDropdown<String>(
-                label: 'Term',
-                value: valid,
-                hint: 'Select term',
-                items: [
-                  for (final s in semesters)
-                    DropdownMenuItem(
-                      value: s.semesterId,
-                      child: Text(
-                        '${s.semesterName}  (${s.academicYear})',
-                        style: AppTypography.body.copyWith(color: c.textPrimary),
-                      ),
-                    ),
-                ],
-                onChanged: (v) => setState(() => _semesterId = v),
-              );
-            },
-          ),
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.lg),
             AcademicsInlineError(message: _error!),

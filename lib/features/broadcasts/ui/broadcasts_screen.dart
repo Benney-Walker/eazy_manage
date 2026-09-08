@@ -23,7 +23,7 @@ class _BroadcastsScreenState extends State<BroadcastsScreen>
     with SingleTickerProviderStateMixin {
   static const List<_BroadcastTab> _tabsSpec = [
     _BroadcastTab('SMS', SmsTab()),
-    _BroadcastTab('Email', EmailTab()),
+    //_BroadcastTab('Email', EmailTab()),
   ];
 
   late final TabController _controller =

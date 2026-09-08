@@ -68,7 +68,46 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     });
   }
 
+  bool _hasInvalidScores() {
+    for (final row in _draft) {
+      for (final col in ScoreColumn.all) {
+        final value = row.valueFor(col.key).trim();
+
+        // Blank scores are allowed.
+        if (value.isEmpty || value == "0") {
+          continue;
+        }
+
+        final score = double.tryParse(value);
+
+        // Invalid number or score outside the allowed range.
+        if (score == null || score < 0 || score > col.max) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
   Future<void> _save() async {
+    if (_hasInvalidScores()) {
+      setState(() {
+        _error = 'Please fix all invalid scores before saving.';
+      });
+
+      notify(
+        ref,
+        context,
+        action: 'Save scores',
+        message: 'Please fix all invalid scores before saving.',
+        isError: true,
+        showSnackbar: false,
+      );
+
+      return;
+    }
+
     setState(() {
       _saving = true;
       _error = null;
@@ -77,6 +116,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     final subjectId = ref.read(subjectScoresProvider).asData?.value?.subjectId ??
         '';
     final semesterId = ref.read(resultsSemesterIdProvider);
+
     try {
       await ref.read(resultsRepositoryProvider).saveScores(
         subjectId: subjectId,
@@ -117,9 +157,6 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
 
-    // Sync the editable draft when a new score sheet loads (outside build's
-    // widget construction — this callback fires on data change, not every
-    // frame, and never disposes controllers mid-build).
     ref.listen(subjectScoresProvider, (prev, next) {
       final data = next.asData?.value;
       if (data != null) {

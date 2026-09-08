@@ -45,10 +45,7 @@ class StaffRepository {
     await _api.post(Endpoints.enrollStaff, body: req.toJson());
   }
 
-  /// POST /admin/v1/reset-staff-password?newPasswordStaffId=..&newPassword=..
-  /// (no body — the values ride in the query string, matching the JavaFX call).
-  /// Values are URL-encoded so special characters in a password don't break
-  /// the request.
+
   Future<void> resetPassword({
     required String targetStaffId,
     required String newPassword,

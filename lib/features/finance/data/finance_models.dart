@@ -30,8 +30,6 @@ class FeesDetails {
   };
 }
 
-/// Body for `POST /finance/v2/new-fees` — set one amount for several classes at
-/// once (different classes often share the same fee).
 class NewFeesRequest {
   final String semesterId;
   final List<String> levelIds;
@@ -149,12 +147,14 @@ class NewPaymentRequest {
 enum SpecialPaymentType {
   stationary,
   admissionFee,
+  boarding,
   other;
 
   /// Exact value the backend enum expects.
   String get backendValue => switch (this) {
     SpecialPaymentType.stationary => 'STATIONARY',
     SpecialPaymentType.admissionFee => 'ADMISSION_FEE',
+    SpecialPaymentType.boarding => 'BOARDING',
     SpecialPaymentType.other => 'OTHER',
   };
 
@@ -162,12 +162,14 @@ enum SpecialPaymentType {
   String get label => switch (this) {
     SpecialPaymentType.stationary => 'Stationary',
     SpecialPaymentType.admissionFee => 'Admission Fee',
+    SpecialPaymentType.boarding => 'boarding',
     SpecialPaymentType.other => 'Other',
   };
 
   static SpecialPaymentType fromBackend(String v) => switch (v.toUpperCase()) {
     'STATIONARY' => SpecialPaymentType.stationary,
     'ADMISSION_FEE' => SpecialPaymentType.admissionFee,
+    'BOARDING' => SpecialPaymentType.boarding,
     _ => SpecialPaymentType.other,
   };
 }

@@ -6,8 +6,8 @@ import '../../../core/notification/notifications.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_badge.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../data/student_models.dart';
 import '../data/student_providers.dart';
@@ -36,7 +36,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
   final _dob = TextEditingController();
   String _gender = '';
   String _status = '';
-  String _gradeId = '';
+  ClassOption? _class;
 
   @override
   void dispose() {
@@ -49,7 +49,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
     super.dispose();
   }
 
-  void _enterEdit(StudentDetail d) {
+  void _enterEdit(StudentDetail d, List<ClassOption>? classes) {
     _firstName.text = d.firstName;
     _lastName.text = d.lastName;
     _parentName.text = d.parentName;
@@ -58,7 +58,18 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
     _dob.text = d.dateOfBirth;
     _gender = d.gender;
     _status = d.status;
-    _gradeId = d.gradeId;
+
+    // Match the existing gradeId against loaded classes if available
+    _class = null;
+    if (classes != null && d.gradeId.isNotEmpty) {
+      for (final cls in classes) {
+        if (cls.levelId == d.gradeId) {
+          _class = cls;
+          break;
+        }
+      }
+    }
+
     setState(() {
       _editing = true;
       _error = null;
@@ -66,6 +77,11 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
   }
 
   Future<void> _save(StudentDetail original) async {
+    if (_class == null) {
+      setState(() => _error = 'Select a class.');
+      return;
+    }
+
     setState(() {
       _saving = true;
       _error = null;
@@ -80,7 +96,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
       dateOfBirth: _dob.text.trim(),
       gender: _gender,
       status: _status,
-      gradeId: _gradeId,
+      gradeId: _class!.levelId,
     );
 
     try {
@@ -121,6 +137,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     final detailAsync = ref.watch(studentDetailProvider(widget.studentId));
+    final classesAsync = ref.watch(classesProvider);
 
     return _sheetShell(
       c,
@@ -130,13 +147,15 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
           child: Center(child: CircularProgressIndicator(color: c.brand)),
         ),
         error: (e, _) => _errorBody(c, e.toString()),
-        data: (d) => _editing ? _editBody(c, d) : _viewBody(c, d),
+        data: (d) => _editing
+            ? _editBody(c, d, classesAsync)
+            : _viewBody(c, d, classesAsync.valueOrNull),
       ),
     );
   }
 
   // ---- View mode ----------------------------------------------------------
-  Widget _viewBody(AppColors c, StudentDetail d) {
+  Widget _viewBody(AppColors c, StudentDetail d, List<ClassOption>? classes) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +184,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
             AppButton.primary(
               label: 'Edit details',
               icon: Icons.edit_rounded,
-              onPressed: () => _enterEdit(d),
+              onPressed: () => _enterEdit(d, classes),
             ),
           ],
         ),
@@ -174,7 +193,8 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
   }
 
   // ---- Edit mode ----------------------------------------------------------
-  Widget _editBody(AppColors c, StudentDetail d) {
+  Widget _editBody(
+      AppColors c, StudentDetail d, AsyncValue<List<ClassOption>> classesAsync) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,27 +213,40 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(child: _classDropdown(c, classesAsync)),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(child: _genderDropdown(c)),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(child: AppTextField(label: 'Date of birth (YYYY-MM-DD)', controller: _dob)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Expanded(
+                child: AppTextField(
+                    label: 'Date of birth (YYYY-MM-DD)', controller: _dob)),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(child: AppTextField(label: 'Home town', controller: _homeTown)),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(child: _statusDropdown(c)),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: AppTextField(label: 'Parent / Guardian', controller: _parentName)),
+            Expanded(child: _statusDropdown(c)),
             const SizedBox(width: AppSpacing.lg),
-            Expanded(child: AppTextField(label: 'Guardian contact', controller: _parentPhone)),
+            Expanded(child: AppTextField(label: 'Parent / Guardian', controller: _parentName)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                child: AppTextField(
+                    label: 'Guardian contact', controller: _parentPhone)),
+            const SizedBox(width: AppSpacing.lg),
+            const Expanded(child: SizedBox.shrink()),
           ],
         ),
         if (_error != null) ...[
@@ -240,6 +273,62 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
     );
   }
 
+  Widget _classDropdown(
+      AppColors c, AsyncValue<List<ClassOption>> classesAsync) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Class',
+            style: AppTypography.label.copyWith(color: c.textSecondary)),
+        const SizedBox(height: AppSpacing.xs + 2),
+        Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: c.inputBg,
+            borderRadius: const BorderRadius.all(AppRadius.mdR),
+            border: Border.all(color: c.inputBorder, width: AppStroke.hairline),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: classesAsync.when(
+              loading: () => Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Loading…',
+                    style: AppTypography.body.copyWith(color: c.textMuted)),
+              ),
+              error: (_, __) => Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Unavailable',
+                    style: AppTypography.body.copyWith(color: c.danger)),
+              ),
+              data: (classes) => DropdownButton<ClassOption>(
+                value: _class,
+                isExpanded: true,
+                hint: Text('Select class',
+                    style:
+                    AppTypography.body.copyWith(color: c.inputPlaceholder)),
+                icon: Icon(Icons.expand_more_rounded, color: c.textSecondary),
+                dropdownColor: c.surfaceElevated,
+                borderRadius: const BorderRadius.all(AppRadius.mdR),
+                items: [
+                  for (final cls in classes)
+                    DropdownMenuItem(
+                      value: cls,
+                      child: Text(cls.levelName,
+                          style:
+                          AppTypography.body.copyWith(color: c.textPrimary)),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _class = v),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _genderDropdown(AppColors c) {
     return _labeledDropdown(
       c,
@@ -255,7 +344,7 @@ class _StudentDetailSheetState extends ConsumerState<StudentDetailSheet> {
       c,
       label: 'Status',
       value: _status.isEmpty ? null : _status,
-      options: const ['ACTIVE', 'INACTIVE', 'GRADUATED', 'WITHDRAWN'],
+      options: const ['ACTIVE', 'INACTIVE', 'GRADUATED'],
       onChanged: (v) => setState(() => _status = v ?? ''),
     );
   }

@@ -131,6 +131,7 @@ class NewStudentRequest {
   final String parentName;
   final String guardianContact;
   final bool isNew;
+  final bool isBorder;
 
   const NewStudentRequest({
     required this.firstName,
@@ -142,6 +143,7 @@ class NewStudentRequest {
     required this.parentName,
     required this.guardianContact,
     this.isNew = false,
+    this.isBorder = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -154,5 +156,6 @@ class NewStudentRequest {
     'parentName': parentName,
     'guardianContact': guardianContact,
     'isNew': isNew,
+    'isBorder': isBorder,
   };
 }

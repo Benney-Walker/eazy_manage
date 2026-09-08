@@ -8,8 +8,6 @@ class BroadcastRoles {
   ];
 }
 
-/// Request body for `POST /admin/v1/broadcasts-message`.
-/// Serializes to: { "message": ..., "audience": [...] }
 class BroadcastSmsRequest {
   final String message;
   final List<String> audience;
