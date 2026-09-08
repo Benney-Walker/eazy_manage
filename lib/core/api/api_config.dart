@@ -1,12 +1,10 @@
 abstract final class ApiConfig {
 
-  static const bool useLocal =  false;
-
   static const String PRODUCTION_URL = 'https://schoolmanagementsystem-production-46c3.up.railway.app';
 
   static const String LOCAL_URL = 'http://localhost:8080';
 
-  static String get BASE_URL => '${useLocal ? LOCAL_URL : PRODUCTION_URL}/api';
+  static String get BASE_URL => '${LOCAL_URL}/api';
 
   // URL roots
   static const String finance = '/finance';
@@ -71,7 +69,9 @@ abstract final class Endpoints {
   static const String updateStaff =
       '${ApiConfig.admin}${ApiConfig.v1}/update-staff-info';
   static const String enrollStaff =
-      '${ApiConfig.auth}${ApiConfig.v1}/enroll-new-staff';
+      '${ApiConfig.staff}${ApiConfig.v1}/add-new-staff';
+  static const String enrollNewPrincipal =
+  '${ApiConfig.auth}${ApiConfig.v1}/enroll-new-principal';
   static const String schoolSubscription =
       '${ApiConfig.auth}${ApiConfig.v1}/school-subscription';
   static String resetStaffPassword(String newPasswordStaffId, String newPassword) =>
