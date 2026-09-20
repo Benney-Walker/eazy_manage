@@ -33,9 +33,25 @@ class _SmsTabState extends ConsumerState<SmsTab> {
     super.dispose();
   }
 
+  void _onMessageChanged(String val) {
+    if (val.length > 350) {
+      final truncated = val.substring(0, 350);
+      _message.value = TextEditingValue(
+        text: truncated,
+        selection: TextSelection.collapsed(offset: truncated.length),
+      );
+    }
+    setState(() {});
+  }
+
   Future<void> _send() async {
-    if (_message.text.trim().isEmpty) {
+    final msgText = _message.text.trim();
+    if (msgText.isEmpty) {
       setState(() => _error = 'Enter a message.');
+      return;
+    }
+    if (msgText.length > 350) {
+      setState(() => _error = 'Message cannot exceed 350 characters.');
       return;
     }
     if (_audience.isEmpty) {
@@ -49,7 +65,7 @@ class _SmsTabState extends ConsumerState<SmsTab> {
     try {
       await ref.read(broadcastRepositoryProvider).sendSms(
         BroadcastSmsRequest(
-          message: _message.text.trim(),
+          message: msgText,
           audience: _audience.toList(),
         ),
       );
@@ -60,7 +76,7 @@ class _SmsTabState extends ConsumerState<SmsTab> {
         _audience = {};
       });
       notify(ref, context,
-          action: 'Send SMS broadcast', message: 'SMS broadcast sent.');
+          action: 'Send SMS broadcast', message: 'SMS broadcast queued for delivery.');
     } on ApiException catch (e) {
       notify(ref, context,
           action: 'Send SMS broadcast', message: e.message,
@@ -84,7 +100,7 @@ class _SmsTabState extends ConsumerState<SmsTab> {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final count = _message.text.trim().length;
+    final count = _message.text.length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -102,13 +118,36 @@ class _SmsTabState extends ConsumerState<SmsTab> {
                 hint: 'Type the SMS message…',
                 controller: _message,
                 maxLines: 4,
-                onChanged: (_) => setState(() {}),
+                onChanged: _onMessageChanged,
               ),
               const SizedBox(height: AppSpacing.xs),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text('$count characters',
-                    style: AppTypography.caption.copyWith(color: c.textMuted)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            size: 14, color: c.textMuted),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text(
+                            'Your school name will be automatically added to the message.',
+                            style: AppTypography.caption
+                                .copyWith(color: c.textMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Text(
+                    '$count / 350 characters',
+                    style: AppTypography.caption.copyWith(
+                      color: count >= 350 ? c.danger : c.textMuted,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.lg),
               AudiencePicker(

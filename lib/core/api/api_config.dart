@@ -1,6 +1,6 @@
 abstract final class ApiConfig {
 
-  static const String PRODUCTION_URL = 'https://schoolmanagementsystem-production-46c3.up.railway.app';
+  static const String PRODUCTION_URL = 'https://schoolmanagement.api.bynexlabs.com';
 
   static const String LOCAL_URL = 'http://localhost:8080';
 
