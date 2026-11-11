@@ -1,10 +1,24 @@
+import 'package:flutter/foundation.dart';
+
 abstract final class ApiConfig {
 
   static const String PRODUCTION_URL = 'https://schoolmanagement.api.bynexlabs.com';
 
   static const String LOCAL_URL = 'http://localhost:8080';
 
-  static String get BASE_URL => '${LOCAL_URL}/api';
+  /// Optional build-time override, e.g.
+  /// `flutter run --dart-define=API_BASE_URL=https://staging.example.com`.
+  static const String _overrideUrl = String.fromEnvironment('API_BASE_URL');
+
+  /// Server root for the current build: the `API_BASE_URL` override when
+  /// given, otherwise production for release builds and localhost for
+  /// debug/profile builds. Release builds can no longer ship pointing at
+  /// localhost by accident.
+  static String get SERVER_URL => _overrideUrl.isNotEmpty
+      ? _overrideUrl
+      : (kReleaseMode ? PRODUCTION_URL : LOCAL_URL);
+
+  static String get BASE_URL => '$SERVER_URL/api';
 
   // URL roots
   static const String finance = '/finance';
