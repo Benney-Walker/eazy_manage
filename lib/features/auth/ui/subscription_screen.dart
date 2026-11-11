@@ -148,7 +148,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         icon: Icons.arrow_forward_rounded,
         expand: true,
         onPressed: () =>
-            context.go('/auth/enroll?institutionId=${_institutionId!}'),
+            context.go(Uri(
+              path: '/auth/enroll',
+              queryParameters: {'institutionId': _institutionId!},
+            ).toString()),
       ),
       const SizedBox(height: AppSpacing.lg),
       Center(

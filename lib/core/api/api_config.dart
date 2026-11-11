@@ -37,6 +37,12 @@ abstract final class ApiConfig {
 
 /// Concrete endpoint paths, composed from [ApiConfig]. Grouped by domain.
 abstract final class Endpoints {
+  /// Appends a properly encoded query string to [path]. Values containing
+  /// spaces, `&`, `#`, `+` or `%` (class names, passwords, payer names) would
+  /// otherwise corrupt the request when interpolated raw.
+  static String _withQuery(String path, Map<String, String> params) =>
+      '$path?${Uri(queryParameters: params).query}';
+
   // ---- Auth ----
   static const String staffLogin = '${ApiConfig.auth}${ApiConfig.v1}/staff-login';
   static const String refreshToken =
@@ -89,8 +95,10 @@ abstract final class Endpoints {
   static const String schoolSubscription =
       '${ApiConfig.auth}${ApiConfig.v1}/school-subscription';
   static String resetStaffPassword(String newPasswordStaffId, String newPassword) =>
-      '${ApiConfig.admin}${ApiConfig.v1}/reset-staff-password'
-          '?newPasswordStaffId=$newPasswordStaffId&newPassword=$newPassword';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v1}/reset-staff-password', {
+        'newPasswordStaffId': newPasswordStaffId,
+        'newPassword': newPassword,
+      });
 
   // ---- Academics: Semesters ----
   static const String loadSemesters =
@@ -122,8 +130,10 @@ abstract final class Endpoints {
   static String findClassInfo(String levelId) =>
       '${ApiConfig.admin}${ApiConfig.v1}/find-class-info/$levelId';
   static String addNewClass(String gradeName, String instructorId) =>
-      '${ApiConfig.admin}${ApiConfig.v1}/add-new-class'
-          '?gradeName=$gradeName&instructorId=$instructorId';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v1}/add-new-class', {
+        'gradeName': gradeName,
+        'instructorId': instructorId,
+      });
   static const String updateClassInfo =
       '${ApiConfig.admin}${ApiConfig.v1}/update-class-info';
 
@@ -168,20 +178,28 @@ abstract final class Endpoints {
   static const String updatePaymentDetails =
       '${ApiConfig.finance}${ApiConfig.v1}/update-payment-details';
   static String fetchPaymentRecords(String studentId, String levelId, String semesterId) =>
-      '${ApiConfig.finance}${ApiConfig.v1}/fetch-payment-records'
-          '?studentId=$studentId&levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.finance}${ApiConfig.v1}/fetch-payment-records', {
+        'studentId': studentId,
+        'levelId': levelId,
+        'semesterId': semesterId,
+      });
 
   // ---- Attendance (view-only) ----
   static String datesMarked(String levelId, String semesterId) =>
       '${ApiConfig.student}${ApiConfig.v1}/dates-marked/$levelId/$semesterId';
   static String attendanceRecords(String levelId, String semesterId, String date) =>
-      '${ApiConfig.student}${ApiConfig.v1}/attendance-records'
-          '?levelId=$levelId&semesterId=$semesterId&date=$date';
+      _withQuery('${ApiConfig.student}${ApiConfig.v1}/attendance-records', {
+        'levelId': levelId,
+        'semesterId': semesterId,
+        'date': date,
+      });
 
   // ---- Conduct ----
   static String conductRecords(String levelId, String semesterId) =>
-      '${ApiConfig.staff}${ApiConfig.v1}/conduct-records'
-          '?levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.staff}${ApiConfig.v1}/conduct-records', {
+        'levelId': levelId,
+        'semesterId': semesterId,
+      });
   static const String saveConductRecord =
       '${ApiConfig.staff}${ApiConfig.v1}/save-conduct-record';
 
@@ -195,13 +213,16 @@ abstract final class Endpoints {
   // PUT, no body; staffId travels in the header via the interceptor.
   static String promoteStudent(
       String studentId, String promotionClassId, String semesterId) =>
-      '${ApiConfig.student}${ApiConfig.v1}/promote-student'
-          '?studentId=$studentId'
-          '&promotionClassId=$promotionClassId'
-          '&semesterId=$semesterId';
+      _withQuery('${ApiConfig.student}${ApiConfig.v1}/promote-student', {
+        'studentId': studentId,
+        'promotionClassId': promotionClassId,
+        'semesterId': semesterId,
+      });
   static String repeatStudent(String studentId, String semesterId) =>
-      '${ApiConfig.student}${ApiConfig.v1}/repeat-student'
-          '?studentId=$studentId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.student}${ApiConfig.v1}/repeat-student', {
+        'studentId': studentId,
+        'semesterId': semesterId,
+      });
 
   // ---- Broadcasts (messaging) ----
   static const String broadcastSms =
@@ -211,35 +232,59 @@ abstract final class Endpoints {
 
   // ---- Audit Logs ----
   static String staffLogs(String selectedStaffId, String fromDate, String toDate) =>
-      '${ApiConfig.admin}${ApiConfig.v1}/get-staff-logs'
-          '?selectedStaffId=$selectedStaffId&fromDate=$fromDate&toDate=$toDate';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v1}/get-staff-logs', {
+        'selectedStaffId': selectedStaffId,
+        'fromDate': fromDate,
+        'toDate': toDate,
+      });
   static String timelyLogs(String fromDate, String toDate) =>
-      '${ApiConfig.admin}${ApiConfig.v1}/get-timely-logs'
-          '?fromDate=$fromDate&toDate=$toDate';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v1}/get-timely-logs', {
+        'fromDate': fromDate,
+        'toDate': toDate,
+      });
 
   // ---- Reports: previews (JSON) ----
   static String viewClassResults(String levelId, String semesterId) =>
-      '${ApiConfig.staff}${ApiConfig.v1}/view-class-results?levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.staff}${ApiConfig.v1}/view-class-results',
+          {'levelId': levelId, 'semesterId': semesterId});
   static String viewMasterSheet(String levelId, String semesterId) =>
-      '${ApiConfig.staff}${ApiConfig.v1}/view-master-sheet?levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.staff}${ApiConfig.v1}/view-master-sheet',
+          {'levelId': levelId, 'semesterId': semesterId});
   static String viewSba(String levelId, String subjectId, String semesterId) =>
-      '${ApiConfig.staff}${ApiConfig.v1}/view-sba?classId=$levelId&subjectId=$subjectId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.staff}${ApiConfig.v1}/view-sba', {
+        // The backend names this parameter classId.
+        'classId': levelId,
+        'subjectId': subjectId,
+        'semesterId': semesterId,
+      });
   static String reportCard(String studentId, String semesterId) =>
-      '${ApiConfig.staff}${ApiConfig.v1}/report-card?studentId=$studentId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.staff}${ApiConfig.v1}/report-card',
+          {'studentId': studentId, 'semesterId': semesterId});
   static String gradeFeesReport(String levelId, String semesterId) =>
       '${ApiConfig.finance}${ApiConfig.v1}/fetch-grade-fees-report/$levelId/$semesterId';
   static String studentFeesReport(String studentId, String semesterId, String gradeId) =>
-      '${ApiConfig.finance}${ApiConfig.v1}/search-fees-report?studentId=$studentId&semesterId=$semesterId&gradeId=$gradeId';
+      _withQuery('${ApiConfig.finance}${ApiConfig.v1}/search-fees-report', {
+        'studentId': studentId,
+        'semesterId': semesterId,
+        'gradeId': gradeId,
+      });
 
   // ---- Reports: PDF generation (bytes) ----
   static String generateClassReport(String levelId, String semesterId) =>
-      '${ApiConfig.admin}${ApiConfig.v2}/generate-class-report?levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v2}/generate-class-report',
+          {'levelId': levelId, 'semesterId': semesterId});
   static String generateMasterSheet(String levelId, String semesterId) =>
-      '${ApiConfig.admin}${ApiConfig.v2}/generate-master-sheet?levelId=$levelId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v2}/generate-master-sheet',
+          {'levelId': levelId, 'semesterId': semesterId});
   static String generateSbaReport(String levelId, String subjectId, String semesterId) =>
-      '${ApiConfig.admin}${ApiConfig.v2}/generate-sba-report?levelId=$levelId&subjectId=$subjectId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.admin}${ApiConfig.v2}/generate-sba-report', {
+        'levelId': levelId,
+        'subjectId': subjectId,
+        'semesterId': semesterId,
+      });
   static String generateReportCard(String studentId, String semesterId) =>
-      '${ApiConfig.student}${ApiConfig.v3}/generate-report-card?studentId=$studentId&semesterId=$semesterId';
+      _withQuery('${ApiConfig.student}${ApiConfig.v3}/generate-report-card',
+          {'studentId': studentId, 'semesterId': semesterId});
   static String generateExpensesReport(String semesterId) =>
       '${ApiConfig.finance}${ApiConfig.v1}/generate-expenses-report/$semesterId';
 }
