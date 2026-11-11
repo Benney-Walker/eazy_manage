@@ -143,33 +143,60 @@ class _AccountSection extends ConsumerWidget {
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
     final c = AppColors.of(context);
-    final confirmed = await showDialog<bool>(
+    final pending = ref.read(syncEngineProvider).state.pending;
+    final hasPending = pending > 0;
+
+    final choice = await showDialog<_SignOutChoice>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: c.surface,
-        title: Text('Sign out?',
+        title: Text(hasPending ? 'Unsynced changes' : 'Sign out?',
             style: AppTypography.subtitle.copyWith(color: c.textPrimary)),
         content: Text(
-          'You\'ll need to sign in again to continue.',
+          hasPending
+              ? '$pending change(s) on this device haven\'t reached the server '
+                  'yet. If you sign out now they stay queued and will be sent '
+                  'under the next account that signs in here. Sync them first '
+                  'if you can.'
+              : 'You\'ll need to sign in again to continue.',
           style: AppTypography.body.copyWith(color: c.textSecondary),
         ),
         actions: [
           AppButton.ghost(
             label: 'Cancel',
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_SignOutChoice.cancel),
           ),
+          if (hasPending)
+            AppButton.primary(
+              label: 'Sync now',
+              icon: Icons.sync_rounded,
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(_SignOutChoice.syncFirst),
+            ),
           AppButton.danger(
-            label: 'Sign out',
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+            label: hasPending ? 'Sign out anyway' : 'Sign out',
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(_SignOutChoice.signOut),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(authProvider.notifier).signOut();
+
+    switch (choice) {
+      case _SignOutChoice.signOut:
+        await ref.read(authProvider.notifier).signOut();
+      case _SignOutChoice.syncFirst:
+        await ref.read(networkStatusProvider.notifier).refresh();
+        await ref.read(syncEngineProvider).drainNow();
+      case _SignOutChoice.cancel:
+      case null:
+        break;
     }
   }
 }
+
+enum _SignOutChoice { cancel, syncFirst, signOut }
 
 // ---- Appearance (theme) ----------------------------------------------------
 

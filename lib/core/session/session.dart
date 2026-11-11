@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../api/api_client.dart';
 import '../api/api_providers.dart';
+import '../cache/reference_cache.dart';
 import '../navigation/nav_item.dart';
+import '../notification/notifications.dart';
 import '../../features/auth/data/auth_repository.dart';
 
 /// The signed-in user's identity, as the shell needs it.
@@ -102,6 +104,7 @@ class AuthController extends Notifier<AuthState> {
         // (the other being an explicit sign-out).
         _api.clearCredentials();
         await _repo.signOut();
+        await _clearLocalState();
         state = const AuthState.unauthenticated();
         return;
       }
@@ -159,7 +162,20 @@ class AuthController extends Notifier<AuthState> {
   Future<void> signOut() async {
     _api.clearCredentials();
     await _repo.signOut();
+    await _clearLocalState();
     state = const AuthState.unauthenticated();
+  }
+
+  /// Drops per-user, per-institution local state when stored auth is cleared,
+  /// so the next person to sign in on this machine doesn't see the previous
+  /// user's notifications or another institution's cached classes/terms.
+  ///
+  /// The offline outbox is deliberately NOT cleared: it may hold unsynced
+  /// payments, which must never be dropped silently. Settings warns before
+  /// signing out while changes are pending.
+  Future<void> _clearLocalState() async {
+    ref.read(notificationsProvider.notifier).clearAll();
+    await ref.read(referenceCacheProvider).clearAll();
   }
 
   void _onUnauthorized(bool refreshTokenRejected) {
@@ -167,6 +183,7 @@ class AuthController extends Notifier<AuthState> {
     _api.clearCredentials();
     if (refreshTokenRejected) {
       _repo.signOut();
+      _clearLocalState();
     }
     state = const AuthState.unauthenticated();
   }
