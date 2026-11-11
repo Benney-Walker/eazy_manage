@@ -276,6 +276,8 @@ class _ConnectivitySection extends ConsumerWidget {
 
           // Pending + last sync.
           _Row('Pending changes', sync.pending.toString()),
+          if (sync.rejected > 0)
+            _Row('Rejected by server', '${sync.rejected} (still queued)'),
           _Row(
             'Last synced',
             sync.lastSyncedAt == null ? 'Never' : _ago(sync.lastSyncedAt!),
