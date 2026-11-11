@@ -87,6 +87,8 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // Stamp the start time so _logCall can report latency.
+          options.extra['__startMs'] = DateTime.now().millisecondsSinceEpoch;
           // Login is the one call that must NOT carry a stale token/staffId.
           final isAuthCall = options.path.contains('${ApiConfig.auth}/');
           if (!isAuthCall) {
@@ -129,7 +131,9 @@ class ApiClient {
         ? DateTime.now().millisecondsSinceEpoch - start
         : null;
     final code = status?.toString() ?? (error ?? 'ERR');
-    final msg = '${o.method} ${o.path} → $code'
+    // Log the path only — never the query string. Some endpoints still carry
+    // sensitive values there (reset-staff-password sends the new password).
+    final msg = '${o.method} ${o.uri.path} → $code'
         '${ms == null ? '' : ' (${ms}ms)'}';
     if (error != null || (status != null && status >= 400)) {
       AppLog.w('api', msg, error);
