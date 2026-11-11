@@ -63,7 +63,7 @@ class ApiClient {
 
   Future<TokenRefreshResult>? _refreshInFlight;
 
-  void setCredentials({required String token, required refreshToken,}) {
+  void setCredentials({required String token, required String refreshToken}) {
     _tokenInMemory = token;
     _refreshTokenInMemory = refreshToken;
   }
@@ -282,8 +282,8 @@ class ApiClient {
 
   Future<TokenRefreshResult> _doRefresh() async {
     final refreshToken = _refreshTokenInMemory ?? await _storage.refreshToken;
-    print("refresh token");
     if (refreshToken == null || refreshToken.isEmpty) {
+      AppLog.w('auth', 'Token refresh skipped: no refresh token stored');
       return const TokenRefreshResult(TokenRefreshOutcome.noRefreshToken);
     }
 
@@ -296,12 +296,12 @@ class ApiClient {
       );
       final code = res.statusCode ?? 0;
       if (code == 401) {
-        print("401");
+        AppLog.w('auth', 'Token refresh rejected (401) — session ended');
         return const TokenRefreshResult(TokenRefreshOutcome.rejected);
       }
       // Any other non-2xx (5xx, etc.) is transient — don't kill the session.
       if (code < 200 || code >= 300) {
-        print("Unavailable");
+        AppLog.w('auth', 'Token refresh unavailable ($code) — keeping session');
         return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
       }
 
@@ -316,8 +316,11 @@ class ApiClient {
       _tokenInMemory = newToken;
       await _storage.updateAccessToken(newToken);
       onTokenRefreshed?.call(newToken);
+      AppLog.i('auth', 'Access token refreshed');
       return TokenRefreshResult(TokenRefreshOutcome.refreshed, newToken);
-    } on DioException {
+    } on DioException catch (e) {
+      AppLog.w('auth', 'Token refresh unavailable (network) — keeping session',
+          e.type.name);
       return const TokenRefreshResult(TokenRefreshOutcome.unavailable);
     }
   }
